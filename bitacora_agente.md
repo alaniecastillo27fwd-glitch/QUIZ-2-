@@ -182,3 +182,22 @@ Todos los servicios, controladores, rutas y seeds requeridos para el Integrante 
 La base de datos `inventario_constructora` fue creada, migrada y poblada exitosamente en PostgreSQL local con las 7 tablas del diagrama, datos semilla del Quiz y lógica de negocio validada al 100%.
 
 ---
+
+## [Entrada #7]
+**Indicación / Tarea:**
+> elimina la carpeta de frontend porque de la carpeta de frontend se encarga otro integrante yo no; y resolución de visualización de tablas en pgAdmin
+
+### 1. Archivos Afectados
+- `QUIZ-2-/frontend/` (Eliminado - responsabilidad de otro integrante)
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Se eliminó completamente la carpeta `frontend/` del espacio de trabajo para mantener el alcance estrictamente en el Backend (Integrante 2).
+- Se confirmó que las 8 tablas físicas (`usuarios`, `proveedores`, `ubicaciones`, `materiales`, `ordenes_compra`, `detalle_orden_compra`, `movimientos`, `SequelizeMeta`) residen activamente en la base de datos `inventario_constructora` de PostgreSQL en el puerto 5432.
+- Se brindaron los pasos para resolver la visualización en pgAdmin (desconexión/reconexión de la base de datos y verificación mediante el Query Tool).
+- Se confirmó el estado limpio del repositorio en la rama `feature/Eiker`.
+
+### 3. Respuesta Completa del Agente
+Carpeta `frontend/` eliminada conforme a la distribución de roles. Se orientó al usuario sobre la actualización de caché en pgAdmin 4 para visualizar las 8 tablas ya creadas en PostgreSQL.
+
+---

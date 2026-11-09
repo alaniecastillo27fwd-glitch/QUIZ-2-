@@ -7,6 +7,11 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 
 ## [Unreleased]
 
+### Documentation
+- **bitacora:** anexa Entrada #7 alcance backend
+  Actualizacion de bitacora y alcance:
+
+
 ### Added
 - **db:** ejecuta migraciones y seeds en postgresql
   Creacion y poblacion de la base de datos inventario_constructora:
