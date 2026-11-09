@@ -10,7 +10,8 @@
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:seed": "sequelize-cli db:seed:all",
     "db:sync": "node src/config/syncDb.js",
-    "lint:backend": "node ../.agents/skills/backend-postgres-guardian/scripts/lint-backend.js ."
+    "lint:backend": "node ../.agents/skills/backend-postgres-guardian/scripts/lint-backend.js .",
+    "test": "node --test tests/**/*.test.js"
   },
   "keywords": [
     "express",

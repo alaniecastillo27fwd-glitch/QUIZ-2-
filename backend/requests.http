@@ -1,0 +1,136 @@
+### ==============================================================================
+### QUIZ 2 - GESTIÓN DE INVENTARIOS (CONSTRUCTORA DEL VALLE S.A.)
+### Colección de Peticiones HTTP para Pruebas del Backend (Integrante 2)
+### Compatible con REST Client (VS Code), Thunder Client o Postman
+### ==============================================================================
+
+@baseUrl = http://localhost:3000/api
+@token = {{login.response.body.token}}
+
+### 1. Health Check
+GET {{baseUrl}}/health
+Accept: application/json
+
+### ------------------------------------------------------------------------------
+### AUTENTICACIÓN
+### ------------------------------------------------------------------------------
+
+### 2. Iniciar Sesión (Obtener JWT)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@constructora.cr",
+  "contrasena": "Admin1234"
+}
+
+### ------------------------------------------------------------------------------
+### MÓDULO: MATERIALES (INVENTARIO Y STOCK DINÁMICO)
+### ------------------------------------------------------------------------------
+
+### 3. Listar Materiales con Stock Dinámico y Estado de Reorden
+GET {{baseUrl}}/materiales
+Authorization: Bearer {{token}}
+
+### 4. Consultar Stock Actual y Métricas de un Material (Ej: Cemento gris - ID: 1)
+GET {{baseUrl}}/materiales/1/stock
+Authorization: Bearer {{token}}
+
+### 5. Consultar Stock Actual de Material en Alerta (Ej: Arena - ID: 4)
+GET {{baseUrl}}/materiales/4/stock
+Authorization: Bearer {{token}}
+
+### 6. Consultar Historial y Trazabilidad Completa (Movimientos + OC asociadas)
+GET {{baseUrl}}/materiales/1/historial
+Authorization: Bearer {{token}}
+
+### 7. Registrar Nuevo Material en Catálogo
+POST {{baseUrl}}/materiales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "codigo": "TUBO-PVC-01",
+  "nombre": "Tubo PVC Sanitario 3 pulg x 6 m",
+  "descripcion": "Tubería sanitaria para evacuación de aguas servidas",
+  "unidad_medida": "tubo",
+  "stock_minimo": 20,
+  "stock_maximo": 200,
+  "demanda_promedio": 10,
+  "demanda_maxima": 18,
+  "tiempo_entrega": 3
+}
+
+### ------------------------------------------------------------------------------
+### MÓDULO: MOVIMIENTOS DE INVENTARIO
+### ------------------------------------------------------------------------------
+
+### 8. Listar Movimientos Registrados
+GET {{baseUrl}}/movimientos
+Authorization: Bearer {{token}}
+
+### 9. Registrar Entrada de Inventario (Suma existencias)
+POST {{baseUrl}}/movimientos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id_material": 1,
+  "id_usuario": 1,
+  "tipo_movimiento": "entrada",
+  "cantidad": 50,
+  "id_ubicacion_destino": 1,
+  "documento_referencia": "FAC-PROV-9988",
+  "observaciones": "Recepción adicional de cemento gris por reabastecimiento"
+}
+
+### 10. Registrar Salida de Inventario (Resta existencias con validación de saldo)
+POST {{baseUrl}}/movimientos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id_material": 1,
+  "id_usuario": 2,
+  "tipo_movimiento": "salida",
+  "cantidad": 20,
+  "id_ubicacion_origen": 1,
+  "documento_referencia": "VALE-SALIDA-5541",
+  "observaciones": "Despacho para fundición de losa de piso"
+}
+
+### 11. Intentar Salida con Stock Insuficiente (Debe fallar con HTTP 400)
+POST {{baseUrl}}/movimientos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id_material": 4,
+  "id_usuario": 2,
+  "tipo_movimiento": "salida",
+  "cantidad": 9999,
+  "id_ubicacion_origen": 1,
+  "documento_referencia": "VALE-ERROR",
+  "observaciones": "Prueba de saldo negativo bloqueado"
+}
+
+### ------------------------------------------------------------------------------
+### MÓDULO: ALERTAS DE REPOSICIÓN (STOCK <= PUNTO DE REORDEN)
+### ------------------------------------------------------------------------------
+
+### 12. Consultar Alertas de Reorden Activas
+GET {{baseUrl}}/alertas
+Authorization: Bearer {{token}}
+
+### ------------------------------------------------------------------------------
+### MÓDULO: COMPRAS Y DETECCIÓN DE DUPLICADOS (EJERCICIO A3)
+### ------------------------------------------------------------------------------
+
+### 13. Detectar Compras Duplicadas (Regla: mismo proveedor, material, 7 días, +/-10% cant)
+GET {{baseUrl}}/ordenes/duplicados
+Authorization: Bearer {{token}}
+
+### 14. Detección con Parámetros Personalizados (ventana de 14 días y margen del 15%)
+GET {{baseUrl}}/ordenes/duplicados?ventanaDias=14&margenCantidad=0.15
+Authorization: Bearer {{token}}

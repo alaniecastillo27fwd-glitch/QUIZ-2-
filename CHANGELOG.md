@@ -13,6 +13,8 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 
 
 ### Added
+- **tests:** añade suite de 19 pruebas unitarias automatizadas con node test runner para fórmulas de inventario, stock dinámico y detección de duplicados
+- **docs:** actualiza README.md completo con guía técnica, tabla de endpoints, fórmulas matemáticas y requests.http para pruebas de API
 - **db:** ejecuta migraciones y seeds en postgresql
   Creacion y poblacion de la base de datos inventario_constructora:
 
@@ -36,3 +38,6 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 ### Security
 
 ### Maintenance
+- **backend:** agrega tests y documentacion
+  Implementacion final de entregables para Integrante 2 (Backend): suite de 19 pruebas unitarias automatizadas con node test runner, coleccion requests.http, actualizacion completa de README.md, CHANGELOG.md y bitacora_agente.md.
+

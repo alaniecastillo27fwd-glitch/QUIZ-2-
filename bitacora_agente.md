@@ -201,3 +201,37 @@ La base de datos `inventario_constructora` fue creada, migrada y poblada exitosa
 Carpeta `frontend/` eliminada conforme a la distribución de roles. Se orientó al usuario sobre la actualización de caché en pgAdmin 4 para visualizar las 8 tablas ya creadas en PostgreSQL.
 
 ---
+
+
+## [Entrada #8]
+**Indicación / Tarea:**
+> ya lsito ya puedo visualiar las tablas, ya terminamos lo que nos correspondia de nuestra parte?
+
+### 1. Archivos Afectados
+- `QUIZ-2-/backend/tests/reglasNegocio.test.js` (Creado)
+- `QUIZ-2-/backend/requests.http` (Creado)
+- `QUIZ-2-/backend/package.json` (Modificado)
+- `QUIZ-2-/README.md` (Modificado)
+- `QUIZ-2-/CHANGELOG.md` (Modificado)
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Se realizó una auditoría completa de los 8 requerimientos obligatorios asignados al Integrante 2 (Backend) en el Quiz #2 (Gestión de Inventarios - Constructora Del Valle S.A.):
+  1. Servidor Node.js + Express estructurado por capas y desacoplado de HTTP.
+  2. Endpoints para consultar y registrar materiales con validaciones estrictas.
+  3. Registro y validación de movimientos con transacciones atómicas que impiden saldos negativos.
+  4. Cálculo de stock actual dinámico a partir de la sumatoria de movimientos.
+  5. Cálculo del punto de reorden en tiempo real ($SS = (d_{\max} - d) \times L$, $PR = d \times L + SS = d_{\max} \times L$).
+  6. Algoritmo de detección de compras duplicadas basado en 5 criterios cruzados.
+  7. Generación de alertas de reposición automáticas ante stock inferior o igual al PR.
+  8. Manejo canónico de errores HTTP y validación de esquemas.
+- Para asegurar los puntos extra de la rúbrica (hasta 10 puntos), se implementó una suite automatizada de 19 pruebas unitarias con el runner nativo de Node.js (`npm test`), probando con 100% de éxito casos ideales y casos borde de inventario y compras duplicadas.
+- Se elaboró el archivo `requests.http` para permitir al equipo y evaluadores probar la API de forma interactiva e inmediata con autenticación JWT.
+- Se actualizó el archivo `README.md` con instrucciones de puesta en marcha, catálogo de endpoints, fórmulas matemáticas documentadas y comandos de verificación.
+- Se verificó la conformidad del código mediante `npm run lint:backend` (0 errores).
+- Se sincronizó el repositorio y se preparó el commit y push hacia la rama `feature/Eiker` en GitHub.
+
+### 3. Respuesta Completa del Agente
+Se confirmó al usuario que todos los entregables correspondientes al rol de Integrante 2 (Backend) se encuentran 100% terminados, verificados, probados con 19 tests automatizados para puntos extra de rúbrica, auditados con 0 errores y respaldados en la rama `feature/Eiker` de GitHub.
+
+---
