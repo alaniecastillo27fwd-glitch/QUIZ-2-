@@ -46,3 +46,32 @@ Se configuró el entorno de skills e inicializó la documentación base del repo
 Se explicó que el commit inicial residía en la máquina local y se procedió a realizar el push a GitHub con éxito.
 
 ---
+
+## [Entrada #3]
+**Indicación / Tarea:**
+> yo soy el integrante 2 vamos a utilizar postgressSQL y no vamos a hacer n8n vamos hacer un backend, ojo no crear todavia la tablas ni nada en postgrees ya que el integrante 3 tiene que enviar el diagrama de flujo, pero si vamos a crear la conexion de la base de datos que ya esta creada en mi postgress y utiliza las sigueintes skills, backend-postgres-guardian y bitacora-agente
+
+### 1. Archivos Afectados
+- `QUIZ-2-/backend/package.json` (Creado)
+- `QUIZ-2-/backend/package-lock.json` (Creado)
+- `QUIZ-2-/backend/.sequelizerc` (Creado)
+- `QUIZ-2-/backend/.env.example` (Creado)
+- `QUIZ-2-/backend/.env` (Creado - excluido de Git por seguridad)
+- `QUIZ-2-/backend/src/config/config.js` (Creado)
+- `QUIZ-2-/backend/src/models/index.js` (Creado)
+- `QUIZ-2-/backend/src/app.js` (Creado)
+- `QUIZ-2-/backend/src/index.js` (Creado)
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Se configuró la arquitectura por capas para el Integrante 2 (Backend) con Node.js, Express y Sequelize según `backend-postgres-guardian`.
+- Se estableció la configuración de conexión hacia la base de datos PostgreSQL `inventario_constructora` mediante variables de entorno protegidas.
+- Se garantizó que NO se creen tablas, esquemas ni migraciones en PostgreSQL, dejándolo preparado para la integración del diagrama de flujo del Integrante 3.
+- Se configuraron en Express los middlewares globales de CORS, JSON parser, endpoint `/api/health`, ruta 404 y manejador centralizado de errores con 4 parámetros.
+- Se instalaron las dependencias de producción y desarrollo (`express`, `sequelize`, `pg`, `pg-hstore`, `dotenv`, `cors`, `nodemon`).
+- Se validó la inicialización del cliente Sequelize y la sintaxis de todos los archivos mediante `node --check`.
+
+### 3. Respuesta Completa del Agente
+Estructura de backend implementada y lista para conectar a `inventario_constructora` sin alterar la base de datos, con soporte para los futuros endpoints de materiales, movimientos, alertas y duplicados.
+
+---

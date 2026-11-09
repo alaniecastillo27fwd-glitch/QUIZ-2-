@@ -8,6 +8,9 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 ## [Unreleased]
 
 ### Added
+- **backend:** inicializa express y conexion a db
+  Configuracion del servidor backend (Integrante 2):
+
 - inicializa entorno de skills y docs base
   Configura la base inicial del repositorio QUIZ-2:
 
