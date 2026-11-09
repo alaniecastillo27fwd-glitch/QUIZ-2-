@@ -7,7 +7,21 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 
 ## [Unreleased]
 
+### Documentation
+- **bitacora:** anexa Entrada #7 alcance backend
+  Actualizacion de bitacora y alcance:
+
+
 ### Added
+- **db:** ejecuta migraciones y seeds en postgresql
+  Creacion y poblacion de la base de datos inventario_constructora:
+
+- **api:** programa logica de negocio y endpoints
+  Implementacion completa del rol Integrante 2 (Backend):
+
+- **models:** implementa 7 modelos segun diagrama
+  Implementacion de modelos y migraciones de inventario (Integrante 2):
+
 - **backend:** inicializa express y conexion a db
   Configuracion del servidor backend (Integrante 2):
 
