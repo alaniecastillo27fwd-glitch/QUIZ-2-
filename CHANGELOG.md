@@ -28,10 +28,14 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 - inicializa entorno de skills y docs base
   Configura la base inicial del repositorio QUIZ-2:
 
+### Changed
+- **frontend:** desacopla datos mock y conecta cliente REST con backend real
+  - Remueve todos los datos de prueba y semillas ficticias en mockData.js y localStorage.
+  - Conecta inventoryService.js directamente a los endpoints de la API REST (/api/materiales, /api/movimientos, /api/ordenes, etc.).
+  - Configura respuestas vacías tolerantes a fallos para desarrollo offline del backend.
 
 ### Fixed
-
-### Changed
+- **frontend:** resuelve pantalla en blanco integrando GlobalErrorBoundary, safe parsing y unloader de Service Workers.
 
 ### Security
 

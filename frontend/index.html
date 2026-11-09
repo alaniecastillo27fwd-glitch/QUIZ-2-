@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Constructora Del Valle S.A. | Control de Inventario</title>
+    <meta name="description" content="Sistema de Control de Inventario para Constructora Del Valle S.A. - Gestión de materiales, movimientos, alertas y auditoría." />
+    <script>
+      // Desregistrar cualquier Service Worker residual de otros proyectos en localhost
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.unregister(); });
+        });
+      }
+    </script>
+  </head>
+  <body class="bg-zinc-50 text-zinc-900 antialiased">
+    <div id="root">
+      <div id="app-loading-fallback" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #020617; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="width: 44px; height: 44px; border: 3px solid #1e293b; border-top-color: #f59e0b; border-radius: 50%; animation: cdv-spin 0.8s linear infinite;"></div>
+        <p style="margin-top: 18px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fbbf24;">CONSTRUCTORA DEL VALLE S.A.</p>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Cargando sistema de inventarios...</p>
+        <style>@keyframes cdv-spin { to { transform: rotate(360deg); } }</style>
+      </div>
+    </div>
+    <script>
+      window.addEventListener('error', function(e) {
+        var fb = document.getElementById('app-loading-fallback');
+        if (fb) {
+          fb.innerHTML = '<div style="max-width: 520px; width: 90%; background: #0f172a; border: 1px solid #ef4444; border-radius: 12px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); text-align: left;">' +
+            '<h2 style="color: #f87171; font-size: 15px; margin: 0 0 8px 0; font-weight: bold;">Error al inicializar la aplicación</h2>' +
+            '<p style="color: #cbd5e1; font-size: 12px; margin: 0 0 12px 0;">' + (e.message || 'Error en script principal') + '</p>' +
+            '<button onclick="localStorage.clear();sessionStorage.clear();location.reload();" style="background: #f59e0b; color: #020617; font-weight: bold; border: none; padding: 8px 16px; border-radius: 6px; font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">Limpiar datos y recargar</button>' +
+            '</div>';
+        }
+      });
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
