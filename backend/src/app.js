@@ -9,6 +9,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -16,7 +17,8 @@ const app = express();
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token'],
+  exposedHeaders: ['x-access-token']
 }));
 app.use(express.json());
 
@@ -36,6 +38,7 @@ app.get('/api/health', async (req, res, next) => {
     res.status(200).json({
       status: 'OK',
       baseDatos: 'Conectada exitosamente a PostgreSQL (inventario_constructora)',
+      modelosCargados: Object.keys(sequelize.models),
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -43,17 +46,11 @@ app.get('/api/health', async (req, res, next) => {
   }
 });
 
-// 3. Montaje de rutas de negocio (se conectarán una vez recibido el modelo del Integrante 3)
-// const materialesRoutes = require('./routes/materialesRoutes');
-// const movimientosRoutes = require('./routes/movimientosRoutes');
-// const alertasRoutes = require('./routes/alertasRoutes');
-// const ordenesRoutes = require('./routes/ordenesRoutes');
-// app.use('/api/materiales', materialesRoutes);
-// app.use('/api/movimientos', movimientosRoutes);
-// app.use('/api/alertas', alertasRoutes);
-// app.use('/api/ordenes', ordenesRoutes);
+// 3. Montaje de rutas modulares
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 
-// 4. Manejador 404: Ruta no encontrada
+// 4. Manejador 404: Ruta no encontrada (debe ir después de las rutas)
 app.use((req, res) => {
   res.status(404).json({
     error: 'Ruta no encontrada',
@@ -73,4 +70,3 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
-

@@ -75,3 +75,47 @@ Se explicó que el commit inicial residía en la máquina local y se procedió a
 Estructura de backend implementada y lista para conectar a `inventario_constructora` sin alterar la base de datos, con soporte para los futuros endpoints de materiales, movimientos, alertas y duplicados.
 
 ---
+
+## [Entrada #4]
+**Indicación / Tarea:**
+> cada vez que hagamos un comiit utilizando las skills pertinentes que envie todo a mi rama llamada feature/Eiker, ya el integrante 3 me envio el diagrama de flujo y esta en docs ahora si ejecuta las tablas pormedio del backend en la carpeta de models y tambien agrega lo qeu falta para que todo este correctamente verifaco con la skill backend-postgres-guardian
+
+### 1. Archivos Afectados
+- `QUIZ-2-/backend/src/models/usuario.js` (Creado)
+- `QUIZ-2-/backend/src/models/proveedor.js` (Creado)
+- `QUIZ-2-/backend/src/models/ordenCompra.js` (Creado)
+- `QUIZ-2-/backend/src/models/material.js` (Creado)
+- `QUIZ-2-/backend/src/models/detalleOrdenCompra.js` (Creado)
+- `QUIZ-2-/backend/src/models/ubicacion.js` (Creado)
+- `QUIZ-2-/backend/src/models/movimiento.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000001-create-usuarios.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000002-create-proveedores.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000003-create-ubicaciones.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000004-create-materiales.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000005-create-ordenes-compra.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000006-create-detalle-orden-compra.js` (Creado)
+- `QUIZ-2-/backend/src/migrations/20261109000007-create-movimientos.js` (Creado)
+- `QUIZ-2-/backend/src/middlewares/authMiddleware.js` (Creado)
+- `QUIZ-2-/backend/src/middlewares/validaciones.js` (Creado)
+- `QUIZ-2-/backend/src/controllers/authController.js` (Creado)
+- `QUIZ-2-/backend/src/routes/authRoutes.js` (Creado)
+- `QUIZ-2-/backend/src/config/syncDb.js` (Creado)
+- `QUIZ-2-/backend/package.json` (Modificado)
+- `QUIZ-2-/backend/.env.example` (Modificado)
+- `QUIZ-2-/backend/.env` (Modificado)
+- `QUIZ-2-/backend/.gitignore` (Creado)
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Veredicto de riesgo: 🟢 Recomendado (diseño aditivo, normalizado a 3FN, con integridad referencial e índices).
+- Se configuró la rama de trabajo `feature/Eiker` para que todos los commits y pushes de Git apunten a ella.
+- Se crearon los 7 modelos de Sequelize (`Usuario`, `Proveedor`, `OrdenCompra`, `Material`, `DetalleOrdenCompra`, `Ubicacion`, `Movimiento`) mapeados exactamente según el diagrama relacional del Integrante 3.
+- Se generaron 7 migraciones versionadas y reversibles (`up`/`down`) con índices sobre todas las claves foráneas.
+- Se implementó la capa de autenticación y seguridad con JWT (expiración por inactividad a 25 min) y bcryptjs.
+- Se crearon los scripts `npm run db:migrate` y `npm run db:sync` para ejecutar las migraciones en PostgreSQL (`inventario_constructora`).
+- Se auditó el código del backend con `lint-backend.js`, logrando 0 errores.
+
+### 3. Respuesta Completa del Agente
+Modelos, migraciones, controladores y middleware de seguridad implementados conforme al diagrama relacional y auditados con 0 errores bajo `backend-postgres-guardian`. Commit y push preparados hacia la rama `feature/Eiker`.
+
+---

@@ -8,6 +8,9 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 ## [Unreleased]
 
 ### Added
+- **models:** implementa 7 modelos segun diagrama
+  Implementacion de modelos y migraciones de inventario (Integrante 2):
+
 - **backend:** inicializa express y conexion a db
   Configuracion del servidor backend (Integrante 2):
 
