@@ -1,128 +1,126 @@
 /**
- * Servicio de Inventario y Mock API con persistencia en localStorage.
- * Constructora Del Valle S.A. - Opción 2 del Quiz #2.
- * Arquitectura desacoplada según frontend-react-structure.
+ * Servicio de Inventario y Conectividad REST API.
+ * Constructora Del Valle S.A. - Control de Inventario.
+ * Diseñado para la integración directa con el Backend Express/PostgreSQL.
  */
-
-import {
-  INITIAL_MATERIALES,
-  INITIAL_ORDENES_COMPRA,
-  INITIAL_MOVIMIENTOS,
-} from './mockData.js';
 
 import {
   enrichMaterialMetrics,
   detectDuplicatePurchaseOrders,
 } from './inventoryCalculations.js';
 
-import { USE_MOCK_DATA, PRECIOS_CONTRATO_OFICIALES, ENDPOINTS } from './apiConfig.js';
+import {
+  API_BASE_URL,
+  ENDPOINTS,
+  PRECIOS_CONTRATO_OFICIALES,
+} from './apiConfig.js';
 
-const STORAGE_KEYS = {
-  MATERIALES: 'cdv_materiales_v1',
-  MOVIMIENTOS: 'cdv_movimientos_v1',
-  ORDENES: 'cdv_ordenes_compra_v1',
-};
-
-// Simulación de latencia de red para API REST asíncrona (100-250ms)
-const sleep = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+// Limpieza proactiva de datos semilla obsoletos en localStorage si existieran
+if (typeof localStorage !== 'undefined') {
+  try {
+    localStorage.removeItem('cdv_materiales_v1');
+    localStorage.removeItem('cdv_movimientos_v1');
+    localStorage.removeItem('cdv_ordenes_compra_v1');
+  } catch (_) {}
+}
 
 /**
- * Acceso seguro a localStorage con tolerancia a JSON corrupto.
+ * Cliente HTTP seguro para peticiones GET.
+ * Si el backend aún no está levantado por el integrante de backend, responde con lista vacía.
  */
-function safeGetJSON(key, fallback) {
+async function fetchGet(url, fallback = []) {
   try {
-    if (typeof localStorage === 'undefined') return fallback;
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    if (!parsed || (Array.isArray(fallback) && !Array.isArray(parsed))) {
+    const res = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      console.warn(`[REST API] HTTP ${res.status} al consultar ${url}`);
       return fallback;
     }
-    return parsed;
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.data || fallback);
   } catch (err) {
-    console.warn(`Error al leer '${key}' de localStorage. Se restablece a datos semilla.`, err);
-    safeSetJSON(key, fallback);
+    // Backend offline / en desarrollo: retornar estructura limpia vacía
+    console.info(`[REST API] Conexión pendiente con backend (${url}): ${err.message}. Retornando lista vacía.`);
     return fallback;
   }
 }
 
-function safeSetJSON(key, value) {
-  try {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (err) {
-    console.warn(`Error al escribir '${key}' en localStorage:`, err);
-  }
-}
-
 /**
- * Inicializa el almacenamiento en localStorage si no existen las llaves o están corruptas.
+ * Cliente HTTP para peticiones POST / PUT.
  */
-function ensureStorageInitialized() {
-  const currentMats = safeGetJSON(STORAGE_KEYS.MATERIALES, null);
-  if (!currentMats || !Array.isArray(currentMats) || currentMats.length === 0) {
-    safeSetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
-  }
+async function fetchMutation(url, method, payload) {
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const currentOrds = safeGetJSON(STORAGE_KEYS.ORDENES, null);
-  if (!currentOrds || !Array.isArray(currentOrds) || currentOrds.length === 0) {
-    safeSetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
-  }
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `Error del servidor HTTP ${res.status}`);
+    }
 
-  const currentMovs = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, null);
-  if (!currentMovs || !Array.isArray(currentMovs) || currentMovs.length === 0) {
-    safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
+    return await res.json();
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      throw new Error(`No se pudo conectar con el backend en ${API_BASE_URL}. Asegúrate de que el servidor esté activo.`);
+    }
+    throw err;
   }
 }
 
 /**
- * Obtiene todos los materiales con sus métricas calculadas reactivamente (SS, PR, Estado).
+ * 1. Catálogo de Materiales
+ * Obtiene todos los materiales registrados en la base de datos con sus métricas calculadas (SS, PR, Estado).
  */
 export async function getMateriales() {
-  await sleep();
-  ensureStorageInitialized();
-
-  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
-  return items.map((m) => enrichMaterialMetrics(m));
+  const rawList = await fetchGet(ENDPOINTS.MATERIALES, []);
+  return rawList.map((m) => enrichMaterialMetrics(m));
 }
 
 /**
  * Obtiene un material por su ID con métricas enriquecidas.
  */
 export async function getMaterialById(id) {
-  await sleep();
-  ensureStorageInitialized();
-
-  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
-  const found = items.find((m) => String(m.id) === String(id));
-
-  if (!found) {
-    throw new Error(`Material con ID ${id} no encontrado en inventario`);
+  try {
+    const res = await fetch(ENDPOINTS.MATERIAL_BY_ID(id), {
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) {
+      throw new Error(`Material #${id} no encontrado en el servidor.`);
+    }
+    const data = await res.json();
+    const item = data.data || data;
+    return enrichMaterialMetrics(item);
+  } catch (err) {
+    // Si la API no está disponible o falla, consultar del listado
+    const todos = await getMateriales();
+    const found = todos.find((m) => String(m.id) === String(id));
+    if (!found) {
+      throw new Error(`Material con ID ${id} no encontrado.`);
+    }
+    return found;
   }
-
-  return enrichMaterialMetrics(found);
 }
 
 /**
- * Crea un nuevo material en el catálogo calculando automáticamente su PR.
+ * Crea un nuevo material en el backend calculando automáticamente su PR.
  */
 export async function createMaterial(data) {
-  await sleep();
-  ensureStorageInitialized();
-
   if (!data.nombre || !data.codigo) {
     throw new Error('El código y el nombre del material son obligatorios.');
   }
 
-  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
-
-  // Validar código único
-  if (items.some((m) => m.codigo.trim().toLowerCase() === data.codigo.trim().toLowerCase())) {
-    throw new Error(`Ya existe un material registrado con el código ${data.codigo}.`);
-  }
-
-  const newMaterial = {
-    id: `mat-${Date.now()}`,
+  const payload = {
     codigo: data.codigo.trim().toUpperCase(),
     nombre: data.nombre.trim(),
     categoria: data.categoria || 'General',
@@ -135,67 +133,36 @@ export async function createMaterial(data) {
     precioUnitarioPromedio: Number(data.precioUnitarioPromedio) || 0,
   };
 
-  items.unshift(newMaterial);
-  safeSetJSON(STORAGE_KEYS.MATERIALES, items);
-
-  return enrichMaterialMetrics(newMaterial);
+  const response = await fetchMutation(ENDPOINTS.MATERIALES, 'POST', payload);
+  const created = response.data || response;
+  return enrichMaterialMetrics(created);
 }
 
 /**
- * Actualiza los datos o parámetros de demanda/lead time de un material.
+ * Actualiza los parámetros de un material en el backend.
  */
 export async function updateMaterial(id, updates) {
-  await sleep();
-  ensureStorageInitialized();
-
-  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
-  const index = items.findIndex((m) => String(m.id) === String(id));
-
-  if (index === -1) {
-    throw new Error(`Material con ID ${id} no encontrado para actualizar.`);
-  }
-
-  const updated = {
-    ...items[index],
-    ...updates,
-    demandaDiariaPromedio: Number(updates.demandaDiariaPromedio ?? items[index].demandaDiariaPromedio),
-    demandaDiariaMaxima: Number(updates.demandaDiariaMaxima ?? items[index].demandaDiariaMaxima),
-    tiempoEntregaDias: Number(updates.tiempoEntregaDias ?? items[index].tiempoEntregaDias),
-    stockActual: Number(updates.stockActual ?? items[index].stockActual),
-  };
-
-  items[index] = updated;
-  safeSetJSON(STORAGE_KEYS.MATERIALES, items);
-
+  const response = await fetchMutation(ENDPOINTS.MATERIAL_BY_ID(id), 'PUT', updates);
+  const updated = response.data || response;
   return enrichMaterialMetrics(updated);
 }
 
 /**
- * Obtiene la lista completa de movimientos de almacén.
+ * 2. Movimientos de Almacén
+ * Obtiene el historial de movimientos de inventario desde el backend.
  */
 export async function getMovimientos() {
-  await sleep();
-  ensureStorageInitialized();
-
-  const items = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
-  // Orden descendente por fecha
-  return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  const rawMovs = await fetchGet(ENDPOINTS.MOVIMIENTOS, []);
+  return rawMovs.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 }
 
 /**
- * Registra un nuevo movimiento y actualiza de forma transaccional el stock del material.
- * Soporta:
- * - ENTRADA: incrementa stock (+). Requiere documento OC o Factura.
- * - SALIDA: descuenta stock (-). Requiere Vale de Salida. Valida stock suficiente.
- * - TRASLADO: movimiento entre ubicaciones (Bodega Central <-> Obras).
+ * Registra un nuevo movimiento en el backend (transaccional).
  */
 export async function createMovimiento(movimientoData) {
-  await sleep();
-  ensureStorageInitialized();
-
   const {
     materialId,
-    tipo, // 'ENTRADA' | 'SALIDA' | 'TRASLADO'
+    tipo,
     cantidad,
     origen,
     destino,
@@ -210,97 +177,48 @@ export async function createMovimiento(movimientoData) {
     throw new Error('El material, tipo de movimiento y una cantidad positiva son obligatorios.');
   }
 
-  // 1. Obtener y validar el material
-  const materiales = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
-  const matIndex = materiales.findIndex((m) => String(m.id) === String(materialId));
-
-  if (matIndex === -1) {
-    throw new Error('El material seleccionado no existe en el catálogo.');
-  }
-
-  const material = materiales[matIndex];
-
-  // 2. Transacción de Stock
-  let nuevoStock = Number(material.stockActual) || 0;
-
-  if (tipo === 'ENTRADA') {
-    nuevoStock += cant;
-  } else if (tipo === 'SALIDA') {
-    if (nuevoStock < cant) {
-      throw new Error(
-        `Stock insuficiente para salida. Stock actual: ${nuevoStock} ${material.unidad}, cantidad solicitada: ${cant} ${material.unidad}.`
-      );
-    }
-    nuevoStock -= cant;
-  } else if (tipo === 'TRASLADO') {
-    // En un traslado interno entre bodegas el stock global consolidado se mantiene,
-    // o bien se transfiere entre frentes. Validamos que haya existencias para trasladar.
-    if (nuevoStock < cant) {
-      throw new Error(
-        `Stock insuficiente para traslado. Disponible: ${nuevoStock} ${material.unidad}.`
-      );
-    }
-  } else {
-    throw new Error(`Tipo de movimiento '${tipo}' no soportado.`);
-  }
-
-  // 3. Persistir material actualizado
-  material.stockActual = nuevoStock;
-  materiales[matIndex] = material;
-  safeSetJSON(STORAGE_KEYS.MATERIALES, materiales);
-
-  // 4. Crear registro inmutable de movimiento
-  const movimientos = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, []);
-
-  const nuevoMovimiento = {
-    id: `mov-${Date.now()}`,
-    materialId: material.id,
-    materialNombre: material.nombre,
+  const payload = {
+    materialId,
     tipo,
     cantidad: cant,
-    unidad: material.unidad,
     origen: origen || 'Bodega Central',
     destino: destino || 'Obras',
     documentoReferencia: documentoReferencia || (tipo === 'ENTRADA' ? 'OC-S/N' : 'VS-S/N'),
     tipoDocumento: tipoDocumento || (tipo === 'ENTRADA' ? 'ORDEN_COMPRA' : 'VALE_SALIDA'),
     usuario,
-    fecha: new Date().toISOString(),
     motivo,
-    stockResultante: nuevoStock,
   };
 
-  movimientos.unshift(nuevoMovimiento);
-  safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, movimientos);
-
-  return {
-    movimiento: nuevoMovimiento,
-    materialActualizado: enrichMaterialMetrics(material),
-  };
+  const response = await fetchMutation(ENDPOINTS.MOVIMIENTOS, 'POST', payload);
+  return response.data || response;
 }
 
 /**
- * Obtiene todas las Órdenes de Compra registradas.
+ * 3. Órdenes de Compra
+ * Obtiene todas las Órdenes de Compra registradas en el backend.
  */
 export async function getOrdenesCompra() {
-  await sleep();
-  ensureStorageInitialized();
-
-  return safeGetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
+  return await fetchGet(ENDPOINTS.ORDENES, []);
 }
 
 /**
- * Retorna materiales con Stock Actual <= Punto de Reorden (PR),
- * ordenados por gravedad del déficit.
+ * Retorna materiales con Stock Actual <= Punto de Reorden (PR).
  */
 export async function getAlertasReorden() {
+  // Intentar endpoint especializado del backend primero
+  const backendAlerts = await fetchGet(ENDPOINTS.ALERTAS_REORDEN, null);
+  if (backendAlerts && Array.isArray(backendAlerts) && backendAlerts.length > 0) {
+    return backendAlerts.map((m) => enrichMaterialMetrics(m));
+  }
+
+  // Si el backend no tiene endpoint especializado, calcular reactivamente sobre materiales
   const materiales = await getMateriales();
   return materiales
     .filter((m) => m.stockActual <= m.puntoReorden || m.estado === 'CRÍTICO' || m.estado === 'ALERTA')
     .sort((a, b) => {
-      // Prioridad a CRÍTICOS y luego a mayor déficit porcentual
       if (a.estado === 'CRÍTICO' && b.estado !== 'CRÍTICO') return -1;
       if (b.estado === 'CRÍTICO' && a.estado !== 'CRÍTICO') return 1;
-      return b.deficit - a.deficit;
+      return (b.deficit || 0) - (a.deficit || 0);
     });
 }
 
@@ -308,6 +226,11 @@ export async function getAlertasReorden() {
  * Retorna las compras sospechosas de duplicidad aplicando la regla de negocio del Ejercicio A3.
  */
 export async function getPosiblesDuplicados() {
+  const backendDuplicados = await fetchGet(ENDPOINTS.DUPLICADOS, null);
+  if (backendDuplicados && Array.isArray(backendDuplicados)) {
+    return backendDuplicados;
+  }
+
   const ordenes = await getOrdenesCompra();
   return detectDuplicatePurchaseOrders(ordenes);
 }
@@ -316,6 +239,11 @@ export async function getPosiblesDuplicados() {
  * Auditoría de compras fuera de contrato / sobreprecios unitarios.
  */
 export async function getSobrepreciosDetectados() {
+  const backendSobreprecios = await fetchGet(ENDPOINTS.SOBREPRECIOS, null);
+  if (backendSobreprecios && Array.isArray(backendSobreprecios)) {
+    return backendSobreprecios;
+  }
+
   const ordenes = await getOrdenesCompra();
   const sobreprecios = [];
 
@@ -351,35 +279,33 @@ export async function getSobrepreciosDetectados() {
 
 /**
  * Actualiza el estado administrativo de una Orden de Compra observada.
- * Estados: 'RECIBIDA' | 'OBSERVADA' | 'REVISADA' | 'PAGO_RETENIDO' | 'ANULADA'
  */
 export async function updateEstadoOrdenCompra(ocId, nuevoEstado, nota = '') {
-  await sleep(100);
-  ensureStorageInitialized();
-
-  const ordenes = safeGetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
-  const index = ordenes.findIndex((o) => o.id === ocId || o.numeroOC === ocId);
-
-  if (index === -1) {
-    throw new Error(`Orden de Compra ${ocId} no encontrada.`);
-  }
-
-  ordenes[index].estado = nuevoEstado;
-  if (nota) ordenes[index].nota = nota;
-  safeSetJSON(STORAGE_KEYS.ORDENES, ordenes);
-
-  return ordenes[index];
+  const payload = { estado: nuevoEstado, nota };
+  const response = await fetchMutation(ENDPOINTS.ORDEN_ESTADO(ocId), 'PUT', payload);
+  return response.data || response;
 }
 
 /**
- * Retorna la cadena completa de movimientos y compras vinculadas a un material específico
- * (trazabilidad inmutable de entradas y consumos en obras).
+ * Retorna la trazabilidad y auditoría completa de un insumo específico.
  */
 export async function getHistorialTrazabilidad(materialId) {
+  // Intentar endpoint especializado en backend
+  try {
+    const res = await fetch(ENDPOINTS.MATERIAL_TRAZABILIDAD(materialId), {
+      headers: { 'Accept': 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.data || data;
+    }
+  } catch (_) {}
+
+  // Fallback computado en frontend sobre movimientos y órdenes
   const [movimientos, ordenes, material] = await Promise.all([
     getMovimientos(),
     getOrdenesCompra(),
-    getMaterialById(materialId),
+    getMaterialById(materialId).catch(() => null),
   ]);
 
   const movimientosMaterial = movimientos.filter(
@@ -388,7 +314,7 @@ export async function getHistorialTrazabilidad(materialId) {
 
   const ordenesMaterial = ordenes.filter(
     (oc) => String(oc.materialId) === String(materialId) ||
-            oc.materialNombre.toLowerCase().includes(material.nombre.toLowerCase())
+            (material && oc.materialNombre?.toLowerCase().includes(material.nombre?.toLowerCase()))
   );
 
   return {
@@ -398,25 +324,23 @@ export async function getHistorialTrazabilidad(materialId) {
     resumen: {
       totalEntradas: movimientosMaterial
         .filter((m) => m.tipo === 'ENTRADA')
-        .reduce((acc, m) => acc + m.cantidad, 0),
+        .reduce((acc, m) => acc + (m.cantidad || 0), 0),
       totalSalidas: movimientosMaterial
         .filter((m) => m.tipo === 'SALIDA')
-        .reduce((acc, m) => acc + m.cantidad, 0),
+        .reduce((acc, m) => acc + (m.cantidad || 0), 0),
       totalTraslados: movimientosMaterial
         .filter((m) => m.tipo === 'TRASLADO')
-        .reduce((acc, m) => acc + m.cantidad, 0),
+        .reduce((acc, m) => acc + (m.cantidad || 0), 0),
     },
   };
 }
 
 /**
- * Restablece los datos de prueba a los valores semilla originales de Constructora Del Valle S.A.
+ * Restablece o solicita limpieza al backend.
  */
 export async function resetToMockData() {
-  await sleep(150);
-  safeSetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
-  safeSetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
-  safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
-  return getMateriales();
+  if (typeof localStorage !== 'undefined') {
+    localStorage.clear();
+  }
+  return [];
 }
-

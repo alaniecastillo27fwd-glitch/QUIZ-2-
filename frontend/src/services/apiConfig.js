@@ -7,11 +7,11 @@ export const API_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) 
   || 'http://localhost:3000/api';
 
-// Flag de conmutación: si es true opera con localStorage; si es false se conecta a la API REST real
+// Flag de conmutación: false por defecto para operar directamente contra el backend real
 export const USE_MOCK_DATA = 
-  typeof import.meta !== 'undefined' && import.meta.env?.VITE_USE_MOCK === 'false'
-    ? false
-    : true;
+  typeof import.meta !== 'undefined' && import.meta.env?.VITE_USE_MOCK === 'true'
+    ? true
+    : false;
 
 // Precios de contrato oficiales vigentes para auditoría de sobreprecios (Ejercicio A3)
 export const PRECIOS_CONTRATO_OFICIALES = {
@@ -37,13 +37,16 @@ export const PRECIOS_CONTRATO_OFICIALES = {
   },
 };
 
-// Mapeo de endpoints de la API REST real (para cuando se active el backend Express/Postgres)
+// Mapeo exhaustivo de endpoints de la API REST real para el Integrante de Backend
 export const ENDPOINTS = {
   MATERIALES: `${API_BASE_URL}/materiales`,
+  MATERIAL_BY_ID: (id) => `${API_BASE_URL}/materiales/${id}`,
   MATERIAL_STOCK: (id) => `${API_BASE_URL}/materiales/${id}/stock`,
+  MATERIAL_TRAZABILIDAD: (id) => `${API_BASE_URL}/materiales/${id}/trazabilidad`,
   MOVIMIENTOS: `${API_BASE_URL}/movimientos`,
   ORDENES: `${API_BASE_URL}/ordenes`,
+  ORDEN_ESTADO: (id) => `${API_BASE_URL}/ordenes/${id}/estado`,
   ALERTAS_REORDEN: `${API_BASE_URL}/alertas/reorden`,
   DUPLICADOS: `${API_BASE_URL}/ordenes/posibles-duplicados`,
+  SOBREPRECIOS: `${API_BASE_URL}/ordenes/sobreprecios`,
 };
-

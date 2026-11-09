@@ -253,27 +253,33 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3.5">
-              {ultimosMovimientos.map((mov) => (
-                <div key={mov.id} className="text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Badge variant={mov.tipo} size="xs" />
-                    <span className="text-[10px] text-slate-600 font-medium">
-                      {formatFechaLocal(mov.fecha, true)}
-                    </span>
+              {ultimosMovimientos.length > 0 ? (
+                ultimosMovimientos.map((mov) => (
+                  <div key={mov.id} className="text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={mov.tipo} size="xs" />
+                      <span className="text-[10px] text-slate-600 font-medium">
+                        {formatFechaLocal(mov.fecha, true)}
+                      </span>
+                    </div>
+                    <p className="font-semibold text-slate-800 truncate">
+                      {mov.materialNombre}
+                    </p>
+                    <p className="text-[11px] text-slate-500 flex items-center justify-between">
+                      <span>
+                        Cant: <strong className="text-slate-700">{mov.cantidad} {mov.unidad}</strong>
+                      </span>
+                      <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
+                        {mov.documentoReferencia}
+                      </span>
+                    </p>
                   </div>
-                  <p className="font-semibold text-slate-800 truncate">
-                    {mov.materialNombre}
-                  </p>
-                  <p className="text-[11px] text-slate-500 flex items-center justify-between">
-                    <span>
-                      Cant: <strong className="text-slate-700">{mov.cantidad} {mov.unidad}</strong>
-                    </span>
-                    <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
-                      {mov.documentoReferencia}
-                    </span>
-                  </p>
+                ))
+              ) : (
+                <div className="text-center py-6 text-slate-400 text-xs">
+                  No hay movimientos registrados.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
