@@ -7,19 +7,23 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 
 ## [Unreleased]
 
+### Documentation
+- **bitacora:** anexa Entrada #7 alcance backend
+  Actualizacion de bitacora y alcance:
+
+
 ### Added
-- **frontend:** implementa control de inventario
-  Implementa el frontend completo para el sistema de control de inventario de Constructora Del Valle S.A. (Quiz #2, Opción 2).
-  
-  Componentes y características:
-  - Arquitectura React 19 + Vite + Tailwind CSS en rama feature/alanie.
-  - Capa de servicios y Mock API con persistencia en localStorage y custom hooks.
-  - Cálculo reactivo inmutable de Punto de Reorden (PR) y Stock de Seguridad (SS).
-  - Detección algorítmica de compras duplicadas (< 72h, <= 5% desvío) y sobreprecios.
-  - 5 pantallas operativas: Dashboard, Materiales, Movimientos, Alertas e Historial.
-  - Validación de saldo no negativo en salidas y trazabilidad cruzada con OCs.
-  - Preparación para acople de backend real en apiConfig.js.
-  - Registro completo en bitácora histórica de intervenciones técnicas.
+- **db:** ejecuta migraciones y seeds en postgresql
+  Creacion y poblacion de la base de datos inventario_constructora:
+
+- **api:** programa logica de negocio y endpoints
+  Implementacion completa del rol Integrante 2 (Backend):
+
+- **models:** implementa 7 modelos segun diagrama
+  Implementacion de modelos y migraciones de inventario (Integrante 2):
+
+- **backend:** inicializa express y conexion a db
+  Configuracion del servidor backend (Integrante 2):
 
 - inicializa entorno de skills y docs base
   Configura la base inicial del repositorio QUIZ-2:
