@@ -27,19 +27,51 @@ const STORAGE_KEYS = {
 const sleep = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Inicializa el almacenamiento en localStorage si no existen las llaves.
+ * Acceso seguro a localStorage con tolerancia a JSON corrupto.
+ */
+function safeGetJSON(key, fallback) {
+  try {
+    if (typeof localStorage === 'undefined') return fallback;
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (!parsed || (Array.isArray(fallback) && !Array.isArray(parsed))) {
+      return fallback;
+    }
+    return parsed;
+  } catch (err) {
+    console.warn(`Error al leer '${key}' de localStorage. Se restablece a datos semilla.`, err);
+    safeSetJSON(key, fallback);
+    return fallback;
+  }
+}
+
+function safeSetJSON(key, value) {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.warn(`Error al escribir '${key}' en localStorage:`, err);
+  }
+}
+
+/**
+ * Inicializa el almacenamiento en localStorage si no existen las llaves o están corruptas.
  */
 function ensureStorageInitialized() {
-  if (typeof localStorage === 'undefined') return;
+  const currentMats = safeGetJSON(STORAGE_KEYS.MATERIALES, null);
+  if (!currentMats || !Array.isArray(currentMats) || currentMats.length === 0) {
+    safeSetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
+  }
 
-  if (!localStorage.getItem(STORAGE_KEYS.MATERIALES)) {
-    localStorage.setItem(STORAGE_KEYS.MATERIALES, JSON.stringify(INITIAL_MATERIALES));
+  const currentOrds = safeGetJSON(STORAGE_KEYS.ORDENES, null);
+  if (!currentOrds || !Array.isArray(currentOrds) || currentOrds.length === 0) {
+    safeSetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
   }
-  if (!localStorage.getItem(STORAGE_KEYS.ORDENES)) {
-    localStorage.setItem(STORAGE_KEYS.ORDENES, JSON.stringify(INITIAL_ORDENES_COMPRA));
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.MOVIMIENTOS)) {
-    localStorage.setItem(STORAGE_KEYS.MOVIMIENTOS, JSON.stringify(INITIAL_MOVIMIENTOS));
+
+  const currentMovs = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, null);
+  if (!currentMovs || !Array.isArray(currentMovs) || currentMovs.length === 0) {
+    safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
   }
 }
 
@@ -50,9 +82,7 @@ export async function getMateriales() {
   await sleep();
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.MATERIALES);
-  const items = raw ? JSON.parse(raw) : INITIAL_MATERIALES;
-
+  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
   return items.map((m) => enrichMaterialMetrics(m));
 }
 
@@ -63,8 +93,7 @@ export async function getMaterialById(id) {
   await sleep();
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.MATERIALES);
-  const items = raw ? JSON.parse(raw) : INITIAL_MATERIALES;
+  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
   const found = items.find((m) => String(m.id) === String(id));
 
   if (!found) {
@@ -85,8 +114,7 @@ export async function createMaterial(data) {
     throw new Error('El código y el nombre del material son obligatorios.');
   }
 
-  const raw = localStorage.getItem(STORAGE_KEYS.MATERIALES);
-  const items = raw ? JSON.parse(raw) : [];
+  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
 
   // Validar código único
   if (items.some((m) => m.codigo.trim().toLowerCase() === data.codigo.trim().toLowerCase())) {
@@ -108,7 +136,7 @@ export async function createMaterial(data) {
   };
 
   items.unshift(newMaterial);
-  localStorage.setItem(STORAGE_KEYS.MATERIALES, JSON.stringify(items));
+  safeSetJSON(STORAGE_KEYS.MATERIALES, items);
 
   return enrichMaterialMetrics(newMaterial);
 }
@@ -120,8 +148,7 @@ export async function updateMaterial(id, updates) {
   await sleep();
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.MATERIALES);
-  const items = raw ? JSON.parse(raw) : [];
+  const items = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
   const index = items.findIndex((m) => String(m.id) === String(id));
 
   if (index === -1) {
@@ -138,7 +165,7 @@ export async function updateMaterial(id, updates) {
   };
 
   items[index] = updated;
-  localStorage.setItem(STORAGE_KEYS.MATERIALES, JSON.stringify(items));
+  safeSetJSON(STORAGE_KEYS.MATERIALES, items);
 
   return enrichMaterialMetrics(updated);
 }
@@ -150,8 +177,7 @@ export async function getMovimientos() {
   await sleep();
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.MOVIMIENTOS);
-  const items = raw ? JSON.parse(raw) : INITIAL_MOVIMIENTOS;
+  const items = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
   // Orden descendente por fecha
   return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 }
@@ -185,8 +211,7 @@ export async function createMovimiento(movimientoData) {
   }
 
   // 1. Obtener y validar el material
-  const rawMat = localStorage.getItem(STORAGE_KEYS.MATERIALES);
-  const materiales = rawMat ? JSON.parse(rawMat) : [];
+  const materiales = safeGetJSON(STORAGE_KEYS.MATERIALES, []);
   const matIndex = materiales.findIndex((m) => String(m.id) === String(materialId));
 
   if (matIndex === -1) {
@@ -222,11 +247,10 @@ export async function createMovimiento(movimientoData) {
   // 3. Persistir material actualizado
   material.stockActual = nuevoStock;
   materiales[matIndex] = material;
-  localStorage.setItem(STORAGE_KEYS.MATERIALES, JSON.stringify(materiales));
+  safeSetJSON(STORAGE_KEYS.MATERIALES, materiales);
 
   // 4. Crear registro inmutable de movimiento
-  const rawMov = localStorage.getItem(STORAGE_KEYS.MOVIMIENTOS);
-  const movimientos = rawMov ? JSON.parse(rawMov) : [];
+  const movimientos = safeGetJSON(STORAGE_KEYS.MOVIMIENTOS, []);
 
   const nuevoMovimiento = {
     id: `mov-${Date.now()}`,
@@ -246,7 +270,7 @@ export async function createMovimiento(movimientoData) {
   };
 
   movimientos.unshift(nuevoMovimiento);
-  localStorage.setItem(STORAGE_KEYS.MOVIMIENTOS, JSON.stringify(movimientos));
+  safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, movimientos);
 
   return {
     movimiento: nuevoMovimiento,
@@ -261,8 +285,7 @@ export async function getOrdenesCompra() {
   await sleep();
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.ORDENES);
-  return raw ? JSON.parse(raw) : INITIAL_ORDENES_COMPRA;
+  return safeGetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
 }
 
 /**
@@ -334,8 +357,7 @@ export async function updateEstadoOrdenCompra(ocId, nuevoEstado, nota = '') {
   await sleep(100);
   ensureStorageInitialized();
 
-  const raw = localStorage.getItem(STORAGE_KEYS.ORDENES);
-  const ordenes = raw ? JSON.parse(raw) : INITIAL_ORDENES_COMPRA;
+  const ordenes = safeGetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
   const index = ordenes.findIndex((o) => o.id === ocId || o.numeroOC === ocId);
 
   if (index === -1) {
@@ -344,7 +366,7 @@ export async function updateEstadoOrdenCompra(ocId, nuevoEstado, nota = '') {
 
   ordenes[index].estado = nuevoEstado;
   if (nota) ordenes[index].nota = nota;
-  localStorage.setItem(STORAGE_KEYS.ORDENES, JSON.stringify(ordenes));
+  safeSetJSON(STORAGE_KEYS.ORDENES, ordenes);
 
   return ordenes[index];
 }
@@ -392,9 +414,9 @@ export async function getHistorialTrazabilidad(materialId) {
  */
 export async function resetToMockData() {
   await sleep(150);
-  localStorage.setItem(STORAGE_KEYS.MATERIALES, JSON.stringify(INITIAL_MATERIALES));
-  localStorage.setItem(STORAGE_KEYS.ORDENES, JSON.stringify(INITIAL_ORDENES_COMPRA));
-  localStorage.setItem(STORAGE_KEYS.MOVIMIENTOS, JSON.stringify(INITIAL_MOVIMIENTOS));
+  safeSetJSON(STORAGE_KEYS.MATERIALES, INITIAL_MATERIALES);
+  safeSetJSON(STORAGE_KEYS.ORDENES, INITIAL_ORDENES_COMPRA);
+  safeSetJSON(STORAGE_KEYS.MOVIMIENTOS, INITIAL_MOVIMIENTOS);
   return getMateriales();
 }
 
