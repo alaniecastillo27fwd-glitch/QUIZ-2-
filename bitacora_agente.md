@@ -156,3 +156,29 @@ Modelos, migraciones, controladores y middleware de seguridad implementados conf
 Todos los servicios, controladores, rutas y seeds requeridos para el Integrante 2 quedaron completamente programados, auditados con 0 errores y sincronizados en la rama `feature/Eiker` de GitHub.
 
 ---
+
+## [Entrada #6]
+**Indicación / Tarea:**
+> ya aplique la contraseñaen la carpeta .env para que aipliques las tablas de la carpeta de models en la base de datos
+
+### 1. Archivos Afectados
+- `QUIZ-2-/backend/.env` (Configuración de contraseña de PostgreSQL)
+- Base de datos `inventario_constructora` (Creada en PostgreSQL)
+- Tablas creadas en PostgreSQL: `usuarios`, `proveedores`, `ubicaciones`, `materiales`, `ordenes_compra`, `detalle_orden_compra`, `movimientos`, `SequelizeMeta`
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Veredicto de riesgo: 🟢 Recomendado (ejecución oficial de migraciones DDL sin alteración destructiva).
+- Se ejecutó `npx sequelize-cli db:create` creando la base de datos `inventario_constructora`.
+- Se corrieron las 7 migraciones mediante `npx sequelize-cli db:migrate`, creando la estructura relacional 3FN completa en PostgreSQL.
+- Se cargaron los datos semilla con `npx sequelize-cli db:seed:all` reproduciendo los casos del Quiz 2 (insumos, demandas, órdenes de compra y movimientos de la Parte A).
+- Se ejecutó una suite de prueba contra la base de datos real confirmando:
+  * Cálculo de Stock Actual: Cemento gris (190 sacos), Varilla #3 (850 unid), Block (2800 unid), Arena (14 m³).
+  * Alertas de Reorden activas: Arena ($14 \le 20$) y Block ($2800 \le 3600$).
+  * Detección de Compras Duplicadas: OC-1041 vs OC-1042 (₡1 290 000) y OC-1050 vs OC-1053 (₡1 032 000).
+- Se sincronizaron los cambios y documentación en la rama `feature/Eiker` de GitHub.
+
+### 3. Respuesta Completa del Agente
+La base de datos `inventario_constructora` fue creada, migrada y poblada exitosamente en PostgreSQL local con las 7 tablas del diagrama, datos semilla del Quiz y lógica de negocio validada al 100%.
+
+---

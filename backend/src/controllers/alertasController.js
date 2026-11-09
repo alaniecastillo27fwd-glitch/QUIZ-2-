@@ -15,3 +15,4 @@ exports.obtenerAlertas = async (req, res, next) => {
     next(error);
   }
 };
+

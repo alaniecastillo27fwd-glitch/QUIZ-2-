@@ -222,3 +222,4 @@ module.exports = {
     await queryInterface.bulkDelete('usuarios', null, {});
   }
 };
+

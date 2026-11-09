@@ -134,3 +134,4 @@ async function detectarComprasDuplicadas({ ventanaDias = 7, margenCantidad = 0.1
 module.exports = {
   detectarComprasDuplicadas
 };
+
