@@ -120,3 +120,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Movimiento;
 };
+

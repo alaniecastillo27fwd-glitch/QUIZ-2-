@@ -54,3 +54,4 @@ const tipos = (reglas) => (req, res, next) => {
 };
 
 module.exports = { requerir, verificarRelacion, tipos };
+

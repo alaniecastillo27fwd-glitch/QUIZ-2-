@@ -16,3 +16,4 @@ router.post('/login', requerir(['correo', 'password']), ctrl.login);
 router.get('/renovar', authMiddleware, ctrl.renovar);
 
 module.exports = router;
+

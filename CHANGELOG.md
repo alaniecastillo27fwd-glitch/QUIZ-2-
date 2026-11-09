@@ -8,6 +8,9 @@ y este proyecto se adhiere a [Conventional Commits](https://www.conventionalcomm
 ## [Unreleased]
 
 ### Added
+- **api:** programa logica de negocio y endpoints
+  Implementacion completa del rol Integrante 2 (Backend):
+
 - **models:** implementa 7 modelos segun diagrama
   Implementacion de modelos y migraciones de inventario (Integrante 2):
 

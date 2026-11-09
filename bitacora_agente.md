@@ -119,3 +119,40 @@ Estructura de backend implementada y lista para conectar a `inventario_construct
 Modelos, migraciones, controladores y middleware de seguridad implementados conforme al diagrama relacional y auditados con 0 errores bajo `backend-postgres-guardian`. Commit y push preparados hacia la rama `feature/Eiker`.
 
 ---
+
+## [Entrada #5]
+**Indicación / Tarea:**
+> Implementación completa de la lógica de negocio, servicios, controladores, rutas y seeder para los endpoints del Integrante 2 (materiales, movimientos, stock, punto de reorden, alertas y compras duplicadas) en la rama feature/Eiker.
+
+### 1. Archivos Afectados
+- `QUIZ-2-/backend/src/services/materialesService.js` (Creado)
+- `QUIZ-2-/backend/src/services/movimientosService.js` (Creado)
+- `QUIZ-2-/backend/src/services/alertasService.js` (Creado)
+- `QUIZ-2-/backend/src/services/duplicadosService.js` (Creado)
+- `QUIZ-2-/backend/src/controllers/materialesController.js` (Creado)
+- `QUIZ-2-/backend/src/controllers/movimientosController.js` (Creado)
+- `QUIZ-2-/backend/src/controllers/alertasController.js` (Creado)
+- `QUIZ-2-/backend/src/controllers/ordenesController.js` (Creado)
+- `QUIZ-2-/backend/src/routes/materialesRoutes.js` (Creado)
+- `QUIZ-2-/backend/src/routes/movimientosRoutes.js` (Creado)
+- `QUIZ-2-/backend/src/routes/alertasRoutes.js` (Creado)
+- `QUIZ-2-/backend/src/routes/ordenesRoutes.js` (Creado)
+- `QUIZ-2-/backend/src/seeders/20261109000001-datos-semilla-quiz.js` (Creado)
+- `QUIZ-2-/backend/src/app.js` (Modificado)
+- `QUIZ-2-/backend/package.json` (Modificado)
+- `QUIZ-2-/bitacora_agente.md` (Modificado)
+
+### 2. Resumen de Acciones Técnicas
+- Se implementaron los 4 servicios de negocio puros (`materialesService`, `movimientosService`, `alertasService`, `duplicadosService`) desacoplados de HTTP.
+- Se programó el cálculo dinámico del stock actual a partir de entradas, salidas y ajustes, y la validación de suficiencia para evitar saldos negativos.
+- Se codificó la fórmula del Punto de Reorden: $PR = d \times L + SS = d_{\max} \times L$.
+- Se implementó el motor de detección de posibles compras duplicadas con criterios configurables (mismo proveedor, mismo artículo, cantidad similar y fechas cercanas).
+- Se configuraron los controladores con conversiones explícitas de tipos y manejo canónico de códigos HTTP (200, 201, 400, 404, 409).
+- Se montaron los routers modulares en `app.js` respetando la Regla 13 de orden de rutas (rutas específicas antes de dinámicas).
+- Se crearon los datos semilla con los casos reales de la Parte A y B del Quiz 2.
+- Se verificó la sintaxis completa del backend y la auditoría con `lint-backend.js` (0 errores).
+
+### 3. Respuesta Completa del Agente
+Todos los servicios, controladores, rutas y seeds requeridos para el Integrante 2 quedaron completamente programados, auditados con 0 errores y sincronizados en la rama `feature/Eiker` de GitHub.
+
+---

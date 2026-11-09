@@ -103,3 +103,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Material;
 };
+
