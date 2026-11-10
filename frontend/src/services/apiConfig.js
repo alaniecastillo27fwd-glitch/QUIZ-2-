@@ -42,7 +42,7 @@ export const ENDPOINTS = {
   MATERIALES: `${API_BASE_URL}/materiales`,
   MATERIAL_BY_ID: (id) => `${API_BASE_URL}/materiales/${id}`,
   MATERIAL_STOCK: (id) => `${API_BASE_URL}/materiales/${id}/stock`,
-  MATERIAL_TRAZABILIDAD: (id) => `${API_BASE_URL}/materiales/${id}/trazabilidad`,
+  MATERIAL_TRAZABILIDAD: (id) => `${API_BASE_URL}/materiales/${id}/historial`,
   MOVIMIENTOS: `${API_BASE_URL}/movimientos`,
   ORDENES: `${API_BASE_URL}/ordenes`,
   ORDEN_ESTADO: (id) => `${API_BASE_URL}/ordenes/${id}/estado`,
