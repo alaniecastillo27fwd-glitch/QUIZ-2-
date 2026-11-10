@@ -4,9 +4,6 @@ import {
   ArrowUpRight, 
   ArrowLeftRight, 
   AlertCircle, 
-  Check, 
-  FileText, 
-  Building, 
   ShieldAlert, 
   Layers 
 } from 'lucide-react';
@@ -18,17 +15,16 @@ export default function MovimientoForm({
   isSubmitting = false,
   initialMaterialId = '',
 }) {
-  const [tipo, setTipo] = useState('ENTRADA'); // 'ENTRADA' | 'SALIDA' | 'TRASLADO'
+  const [tipo, setTipo] = useState('ENTRADA');
   const [materialId, setMaterialId] = useState(initialMaterialId || (materiales[0]?.id || ''));
   const [cantidad, setCantidad] = useState('');
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('Bodega Central');
   const [documentoReferencia, setDocumentoReferencia] = useState('');
-  const [usuario, setUsuario] = useState('Alanie Rodríguez (Bodega Central)');
+  const [usuario] = useState('Alanie Rodríguez (Bodega Central)');
   const [motivo, setMotivo] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Si cambia el material inicial desde la URL o props
   useEffect(() => {
     if (initialMaterialId) {
       setMaterialId(initialMaterialId);
@@ -37,7 +33,6 @@ export default function MovimientoForm({
     }
   }, [initialMaterialId, materiales]);
 
-  // Ajustar orígenes y destinos según el tipo de movimiento
   useEffect(() => {
     if (tipo === 'ENTRADA') {
       setOrigen('Proveedor / Compra');
@@ -65,202 +60,150 @@ export default function MovimientoForm({
     return materiales.find((m) => String(m.id) === String(materialId));
   }, [materiales, materialId]);
 
-  // Previsualización de Impacto en Stock
-  const impactAnalysis = useMemo(() => {
-    if (!selectedMaterial) return null;
-    const currentStock = Number(selectedMaterial.stockActual) || 0;
-    const cantNum = Number(cantidad) || 0;
-    const pr = selectedMaterial.puntoReorden;
+  const numCantidad = Number(cantidad) || 0;
+  const stockActual = selectedMaterial ? Number(selectedMaterial.stockActual) || 0 : 0;
 
-    let resultingStock = currentStock;
-    let isValid = true;
-    let warning = null;
+  const stockResultante = useMemo(() => {
+    if (!selectedMaterial) return 0;
+    if (tipo === 'ENTRADA') return stockActual + numCantidad;
+    if (tipo === 'SALIDA') return stockActual - numCantidad;
+    return stockActual;
+  }, [selectedMaterial, tipo, stockActual, numCantidad]);
 
-    if (tipo === 'ENTRADA') {
-      resultingStock = currentStock + cantNum;
-    } else if (tipo === 'SALIDA') {
-      resultingStock = currentStock - cantNum;
-      if (cantNum > currentStock) {
-        isValid = false;
-        warning = `La cantidad a retirar (${cantNum}) excede las existencias disponibles (${currentStock} ${selectedMaterial.unidad}).`;
-      }
-    } else if (tipo === 'TRASLADO') {
-      if (cantNum > currentStock) {
-        isValid = false;
-        warning = `Stock insuficiente en origen para trasladar (${currentStock} ${selectedMaterial.unidad} disponibles).`;
-      }
-      if (origen === destino) {
-        isValid = false;
-        warning = 'El origen y el destino del traslado no pueden ser iguales.';
-      }
-    }
-
-    const willBeCritical = resultingStock <= pr;
-    const willBeAlert = resultingStock <= pr * 1.15 && !willBeCritical;
-
-    return {
-      currentStock,
-      cantNum,
-      resultingStock,
-      isValid,
-      warning,
-      willBeCritical,
-      willBeAlert,
-      pr,
-      unidad: selectedMaterial.unidad,
-    };
-  }, [selectedMaterial, tipo, cantidad, origen, destino]);
+  const isSaldoNegativo = tipo === 'SALIDA' && numCantidad > stockActual;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
-
-    if (!selectedMaterial) {
-      setErrorMsg('Debe seleccionar un material válido.');
+    if (!materialId) {
+      setErrorMsg('Selecciona un material del catálogo.');
       return;
     }
-
-    const cantNum = Number(cantidad);
-    if (!cantNum || cantNum <= 0) {
-      setErrorMsg('La cantidad debe ser un número positivo mayor a cero.');
+    if (!numCantidad || numCantidad <= 0) {
+      setErrorMsg('Ingresa una cantidad mayor a cero.');
       return;
     }
-
-    if (!documentoReferencia.trim()) {
+    if (isSaldoNegativo) {
       setErrorMsg(
-        tipo === 'ENTRADA'
-          ? 'El número de Orden de Compra (OC) es obligatorio.'
-          : tipo === 'SALIDA'
-          ? 'El número de Vale de Salida es obligatorio.'
-          : 'El número de Guía de Traslado es obligatorio.'
+        `Saldo insuficiente: No puedes despachar ${numCantidad} ${selectedMaterial?.unidad}. Stock actual disponible: ${stockActual} ${selectedMaterial?.unidad}.`
       );
       return;
     }
-
-    if (impactAnalysis && !impactAnalysis.isValid) {
-      setErrorMsg(impactAnalysis.warning);
+    if (!documentoReferencia.trim()) {
+      setErrorMsg('El documento de soporte (OC o Vale) es obligatorio para trazabilidad.');
       return;
     }
 
-    const tipoDoc = 
-      tipo === 'ENTRADA' ? 'ORDEN_COMPRA' : 
-      tipo === 'SALIDA' ? 'VALE_SALIDA' : 'GUIA_TRASLADO';
-
     try {
+      setErrorMsg('');
       await onSubmit({
-        materialId: selectedMaterial.id,
+        materialId,
         tipo,
-        cantidad: cantNum,
+        cantidad: numCantidad,
         origen,
         destino,
         documentoReferencia: documentoReferencia.trim(),
-        tipoDocumento: tipoDoc,
+        tipoDocumento: tipo === 'ENTRADA' ? 'ORDEN_COMPRA' : tipo === 'SALIDA' ? 'VALE_SALIDA' : 'GUIA_TRASLADO',
         usuario,
-        motivo: motivo.trim(),
+        motivo,
       });
 
-      // Limpiar formulario tras éxito
       setCantidad('');
       setMotivo('');
-      if (tipo === 'ENTRADA') setDocumentoReferencia('OC-');
-      else if (tipo === 'SALIDA') setDocumentoReferencia('VALE-');
-      else setDocumentoReferencia('TR-');
     } catch (err) {
       setErrorMsg(err.message || 'Error al procesar el movimiento.');
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-      {/* Header Form */}
-      <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-        <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          <Layers className="w-4 h-4 text-amber-500" />
+    <div className="bg-white dark:bg-darkteal/60 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal p-6 sm:p-7 shadow-sm">
+      <div className="border-b-2 border-darkteal/15 pb-4 mb-6">
+        <h3 className="text-lg font-black text-evergreen dark:text-softlinen uppercase tracking-wider">
           Registrar Transacción de Almacén
         </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">
+        <p className="text-xs md:text-sm font-semibold text-darkteal dark:text-yellowgreen mt-0.5">
           Captura entradas por compra (OC), salidas a frentes de obra (Vales) y traslados internos.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {errorMsg && (
-          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-xl bg-cayenne text-white text-sm font-bold flex items-center gap-2 shadow-xs">
+            <AlertCircle className="w-5 h-5 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* 1. Selector de Tipo de Movimiento (Tabs) */}
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1.5 uppercase text-[10px] tracking-wider">
+        {/* 1. Selector de Tipo de Movimiento */}
+        <div className="space-y-2">
+          <label className="block text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
             Tipo de Flujo de Inventario
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             <button
               type="button"
               onClick={() => setTipo('ENTRADA')}
-              className={`py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
+              className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-xs md:text-sm font-black uppercase tracking-wide transition-all cursor-pointer ${
                 tipo === 'ENTRADA'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-yellowgreen text-evergreen border-yellowgreen shadow-xs'
+                  : 'bg-softlinen/40 dark:bg-evergreen border-darkteal/20 text-evergreen dark:text-softlinen hover:border-yellowgreen'
               }`}
             >
-              <ArrowDownLeft className="w-4 h-4" />
+              <ArrowDownLeft className="w-4 h-4 shrink-0" />
               <span>Entrada (OC)</span>
             </button>
 
             <button
               type="button"
               onClick={() => setTipo('SALIDA')}
-              className={`py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
+              className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-xs md:text-sm font-black uppercase tracking-wide transition-all cursor-pointer ${
                 tipo === 'SALIDA'
-                  ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-cayenne text-white border-cayenne shadow-xs'
+                  : 'bg-softlinen/40 dark:bg-evergreen border-darkteal/20 text-evergreen dark:text-softlinen hover:border-cayenne'
               }`}
             >
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-4 h-4 shrink-0" />
               <span>Salida (Vale)</span>
             </button>
 
             <button
               type="button"
               onClick={() => setTipo('TRASLADO')}
-              className={`py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
+              className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-xs md:text-sm font-black uppercase tracking-wide transition-all cursor-pointer ${
                 tipo === 'TRASLADO'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-darkteal text-softlinen border-darkteal shadow-xs'
+                  : 'bg-softlinen/40 dark:bg-evergreen border-darkteal/20 text-evergreen dark:text-softlinen hover:border-darkteal'
               }`}
             >
-              <ArrowLeftRight className="w-4 h-4" />
+              <ArrowLeftRight className="w-4 h-4 shrink-0" />
               <span>Traslado</span>
             </button>
           </div>
         </div>
 
-        {/* 2. Selector de Material */}
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1">
-            Material / Insumo *
-          </label>
-          <select
-            value={materialId}
-            onChange={(e) => setMaterialId(e.target.value)}
-            required
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-          >
-            {materiales.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nombre} ({m.codigo}) — Disponible: {m.stockActual} {m.unidad} [PR: {m.puntoReorden}]
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* 2. Selector de Insumo y Cantidad */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div className="sm:col-span-2">
+            <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+              Material / Insumo *
+            </label>
+            <select
+              value={materialId}
+              onChange={(e) => setMaterialId(e.target.value)}
+              className="w-full bg-softlinen/40 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2.5 text-sm font-extrabold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen cursor-pointer"
+            >
+              {materiales.length === 0 && (
+                <option value="">No hay materiales disponibles</option>
+              )}
+              {materiales.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} ({m.codigo}) · Stock: {m.stockActual} {m.unidad}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* 3. Cantidad y Documento de Soporte */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
+            <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
               Cantidad {selectedMaterial ? `(${selectedMaterial.unidad})` : ''} *
             </label>
             <input
@@ -271,178 +214,102 @@ export default function MovimientoForm({
               value={cantidad}
               onChange={(e) => setCantidad(e.target.value)}
               placeholder="Ej. 50"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+              className={`w-full bg-softlinen/40 dark:bg-evergreen border-2 rounded-xl px-3.5 py-2.5 text-sm font-black text-evergreen dark:text-softlinen focus:outline-hidden ${
+                isSaldoNegativo ? 'border-cayenne bg-cayenne/10' : 'border-darkteal/20 dark:border-darkteal focus:border-yellowgreen'
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* 3. Indicador Dinámico de Impacto en Stock */}
+        {selectedMaterial && (
+          <div className="p-4 rounded-xl bg-softlinen/50 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs md:text-sm">
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-darkteal dark:text-yellowgreen shrink-0" />
+              <span className="font-bold text-evergreen dark:text-softlinen">
+                Stock actual: <strong className="text-darkteal dark:text-yellowgreen">{stockActual} {selectedMaterial.unidad}</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-evergreen dark:text-softlinen">Stock resultante:</span>
+              <span className={`text-sm font-black px-2.5 py-0.5 rounded-lg border ${
+                isSaldoNegativo
+                  ? 'bg-cayenne text-white border-cayenne'
+                  : 'bg-yellowgreen text-evergreen border-yellowgreen'
+              }`}>
+                {stockResultante} {selectedMaterial.unidad}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Documento de Referencia y Ubicaciones */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div>
+            <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+              {tipo === 'ENTRADA' ? 'N° Orden de Compra (OC) *' : 'N° Vale de Salida / Guía *'}
+            </label>
+            <input
+              type="text"
+              required
+              value={documentoReferencia}
+              onChange={(e) => setDocumentoReferencia(e.target.value)}
+              placeholder="OC-1041"
+              className="w-full bg-softlinen/40 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">
-              {tipo === 'ENTRADA'
-                ? 'N° Orden de Compra (OC) *'
-                : tipo === 'SALIDA'
-                ? 'N° Vale de Salida / Despacho *'
-                : 'N° Guía de Traslado *'}
+            <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+              Origen
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                required
-                value={documentoReferencia}
-                onChange={(e) => setDocumentoReferencia(e.target.value)}
-                placeholder={
-                  tipo === 'ENTRADA' ? 'OC-1041' : tipo === 'SALIDA' ? 'VALE-8821' : 'TR-0310'
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
-              />
-              <FileText className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            </div>
+            <input
+              type="text"
+              value={origen}
+              onChange={(e) => setOrigen(e.target.value)}
+              placeholder="Bodega Central"
+              className="w-full bg-softlinen/40 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2.5 text-sm font-semibold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
+            />
           </div>
-        </div>
 
-        {/* 4. Origen y Destino según Tipo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {tipo === 'ENTRADA' ? (
-            <>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Origen (Proveedor)</label>
-                <input
-                  type="text"
-                  value={origen}
-                  onChange={(e) => setOrigen(e.target.value)}
-                  placeholder="Proveedor A / CEMEX"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Bodega Destino</label>
-                <select
-                  value={destino}
-                  onChange={(e) => setDestino(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium"
-                >
-                  <option value="Bodega Central">Bodega Central</option>
-                  <option value="Obras">Obras (Descarga Directa)</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-            </>
-          ) : tipo === 'SALIDA' ? (
-            <>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Bodega Origen</label>
-                <select
-                  value={origen}
-                  onChange={(e) => setOrigen(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium"
-                >
-                  <option value="Bodega Central">Bodega Central</option>
-                  <option value="Obras">Obras (Patio Central)</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Frente de Obra Destino</label>
-                <input
-                  type="text"
-                  value={destino}
-                  onChange={(e) => setDestino(e.target.value)}
-                  placeholder="Frente Torre Norte (Losa Piso 3)"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ubicación Origen</label>
-                <select
-                  value={origen}
-                  onChange={(e) => setOrigen(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium"
-                >
-                  <option value="Bodega Central">Bodega Central</option>
-                  <option value="Obras">Obras</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ubicación Destino</label>
-                <select
-                  value={destino}
-                  onChange={(e) => setDestino(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium"
-                >
-                  <option value="Obras">Obras</option>
-                  <option value="Bodega Central">Bodega Central</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-            </>
-          )}
+          <div>
+            <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+              Destino
+            </label>
+            <input
+              type="text"
+              value={destino}
+              onChange={(e) => setDestino(e.target.value)}
+              placeholder="Frente de Obra"
+              className="w-full bg-softlinen/40 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2.5 text-sm font-semibold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
+            />
+          </div>
         </div>
 
         {/* 5. Observaciones */}
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">Observaciones / Justificación</label>
+          <label className="block text-sm font-bold text-evergreen dark:text-softlinen mb-1.5">
+            Observaciones / Justificación
+          </label>
           <input
             type="text"
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
-            placeholder="Ej. Despacho urgente para fundición de zapatas eje B"
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800"
+            placeholder="Ej. Despacho prioritario para colado de losa nivel 2"
+            className="w-full bg-softlinen/40 dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2.5 text-sm font-medium text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
           />
         </div>
 
-        {/* 6. Previsualización de Impacto en Stock */}
-        {impactAnalysis && (
-          <div className={`p-3.5 rounded-xl border space-y-1.5 ${
-            !impactAnalysis.isValid
-              ? 'bg-rose-50 border-rose-300 text-rose-900'
-              : impactAnalysis.willBeCritical
-              ? 'bg-rose-50/60 border-rose-200 text-rose-900'
-              : impactAnalysis.willBeAlert
-              ? 'bg-amber-50/60 border-amber-200 text-amber-900'
-              : 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
-          }`}>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-bold flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5" />
-                Previsualización de Impacto en Stock:
-              </span>
-              <span className="font-semibold">
-                PR: {impactAnalysis.pr} {impactAnalysis.unidad}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between text-xs font-mono font-bold">
-              <span>Actual: {impactAnalysis.currentStock} {impactAnalysis.unidad}</span>
-              <span>{tipo === 'ENTRADA' ? '+' : tipo === 'SALIDA' ? '-' : '⇄'} {impactAnalysis.cantNum || 0}</span>
-              <span>Resultante: {impactAnalysis.resultingStock} {impactAnalysis.unidad}</span>
-            </div>
-
-            {impactAnalysis.warning ? (
-              <p className="text-[11px] font-semibold text-rose-700">
-                {impactAnalysis.warning}
-              </p>
-            ) : impactAnalysis.willBeCritical ? (
-              <p className="text-[11px] font-semibold text-rose-700">
-                ⚠️ Advertencia: Con esta salida el stock caerá por debajo del Punto de Reorden ($PR={impactAnalysis.pr}$). Se generará alerta inmediata.
-              </p>
-            ) : null}
-          </div>
-        )}
-
-        {/* Submit Button */}
+        {/* Botón de Envío */}
         <button
           type="submit"
-          disabled={isSubmitting || (impactAnalysis && !impactAnalysis.isValid)}
-          className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
+          disabled={isSubmitting || isSaldoNegativo}
+          className="w-full py-3.5 rounded-xl bg-yellowgreen hover:bg-yellowgreen-light text-evergreen font-black text-sm uppercase tracking-wider transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm disabled:opacity-50"
         >
-          <Check className="w-4 h-4" />
-          <span>{isSubmitting ? 'Procesando movimiento...' : 'Confirmar y Registrar Transacción'}</span>
+          {isSubmitting ? 'Procesando Transacción...' : 'Confirmar y Registrar Transacción'}
         </button>
       </form>
     </div>
   );
 }
-

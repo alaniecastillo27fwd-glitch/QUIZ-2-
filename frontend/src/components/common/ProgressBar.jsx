@@ -6,7 +6,7 @@ export default function ProgressBar({
   target = 100,
   max = null,
   unit = 'unid',
-  label = 'Nivel de Stock',
+  label = 'Nivel de Stock Actual',
   showLabels = true,
   className = '',
 }) {
@@ -20,26 +20,26 @@ export default function ProgressBar({
   const isCritical = currentNum <= targetNum;
   const isWarning = currentNum > targetNum && currentNum <= targetNum * 1.15;
 
-  let barColor = 'bg-emerald-500';
+  let barColor = 'bg-yellowgreen';
   if (isCritical) {
-    barColor = 'bg-rose-500';
+    barColor = 'bg-cayenne';
   } else if (isWarning) {
-    barColor = 'bg-amber-500';
+    barColor = 'bg-darkteal dark:bg-yellowgreen';
   }
 
   return (
-    <div className={clsx('w-full space-y-1.5', className)}>
+    <div className={clsx('w-full space-y-2', className)}>
       {showLabels && (
-        <div className="flex items-center justify-between text-[11px] font-medium text-slate-600">
-          <span>{label}</span>
-          <span className="font-semibold text-slate-900">
+        <div className="flex items-center justify-between text-xs md:text-sm font-semibold text-evergreen dark:text-softlinen">
+          <span className="font-bold text-darkteal dark:text-yellowgreen">{label}</span>
+          <span className="font-extrabold text-evergreen dark:text-softlinen">
             {currentNum.toLocaleString()} / {targetNum.toLocaleString()} {unit}
           </span>
         </div>
       )}
 
-      {/* Progress Track */}
-      <div className="relative w-full h-2.5 bg-slate-200/80 rounded-full overflow-hidden">
+      {/* Progress Track con colores sólidos */}
+      <div className="relative w-full h-3.5 bg-darkteal/15 dark:bg-evergreen-dark rounded-full overflow-hidden border border-darkteal/30 dark:border-darkteal">
         {/* Filled bar */}
         <div
           className={clsx('h-full transition-all duration-300 rounded-full', barColor)}
@@ -48,20 +48,21 @@ export default function ProgressBar({
 
         {/* PR Target Indicator Marker */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-slate-900/60 z-10"
+          className="absolute top-0 bottom-0 w-1 bg-evergreen dark:bg-softlinen z-10"
           style={{ left: `${targetPercentage}%` }}
           title={`Punto de Reorden (PR): ${targetNum} ${unit}`}
         />
       </div>
 
       {showLabels && (
-        <div className="flex justify-between text-[10px] text-slate-600">
+        <div className="flex justify-between text-xs font-bold text-darkteal dark:text-softlinen/70">
           <span>0</span>
-          <span className="font-medium text-slate-600">PR: {targetNum.toLocaleString()}</span>
+          <span className="font-extrabold text-cayenne dark:text-yellowgreen">
+            PR: {targetNum.toLocaleString()} {unit}
+          </span>
           <span>{Math.round(maxScale).toLocaleString()}</span>
         </div>
       )}
     </div>
   );
 }
-

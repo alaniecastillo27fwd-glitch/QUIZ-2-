@@ -46,46 +46,46 @@ export default function MovimientosPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto animate-fade-in-up">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2.5 animate-in slide-in-from-top-3 duration-200 text-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span className="font-semibold">{toastMessage}</span>
+        <div className="fixed top-6 right-6 z-50 bg-evergreen text-softlinen px-5 py-3.5 rounded-2xl shadow-2xl border-2 border-yellowgreen flex items-center gap-3 animate-scale-in text-sm font-bold">
+          <CheckCircle2 className="w-5 h-5 text-yellowgreen shrink-0" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal/50 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 font-semibold text-xs tracking-wider uppercase mb-1">
-            <ArrowLeftRight className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center gap-2 text-darkteal dark:text-softlinen/70 font-bold text-xs tracking-wider uppercase mb-1">
+            <ArrowLeftRight className="w-4 h-4 text-cayenne" />
             <span>Constructora Del Valle S.A. · Control de Almacén</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-black text-evergreen dark:text-softlinen tracking-tight">
             Movimientos y Despachos de Inventario
           </h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
+          <p className="text-sm text-darkteal dark:text-softlinen/70 mt-1 font-medium">
             Registro de recepciones de compra (OC), salidas a frentes de obra (Vales) y transferencias entre bodegas.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-lg text-xs">
-          <Boxes className="w-4 h-4 text-slate-600" />
+        <div className="flex items-center gap-3.5 bg-softlinen/50 dark:bg-darkteal/50 border-2 border-darkteal/20 dark:border-darkteal/60 px-4 py-2.5 rounded-xl text-sm">
+          <Boxes className="w-5 h-5 text-yellowgreen" />
           <div>
-            <span className="text-slate-500 block text-[10px] font-semibold uppercase">Catálogo Activo</span>
-            <span className="font-bold text-slate-900">{materiales.length} Insumos Registrados</span>
+            <span className="text-darkteal dark:text-softlinen/60 block text-xs font-bold uppercase tracking-wider">Catálogo Activo</span>
+            <span className="font-extrabold text-evergreen dark:text-softlinen">{materiales.length} Insumos Registrados</span>
           </div>
         </div>
       </div>
 
       {/* Alert Banner if stock fell below PR */}
       {alertBanner && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-semibold flex items-start gap-2.5 shadow-xs animate-in fade-in duration-200">
-          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-2xl bg-cayenne/15 border-2 border-cayenne text-evergreen dark:text-softlinen text-sm font-bold flex items-start gap-3 shadow-xs animate-scale-in">
+          <AlertTriangle className="w-5 h-5 text-cayenne shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p>{alertBanner}</p>
-            <p className="text-[11px] text-rose-700 font-normal mt-0.5">
+            <p className="text-evergreen dark:text-softlinen">{alertBanner}</p>
+            <p className="text-xs text-darkteal dark:text-softlinen/70 font-semibold mt-1">
               Consulte el módulo de Alertas para generar la orden de compra o coordinar con compras.
             </p>
           </div>
@@ -107,11 +107,11 @@ export default function MovimientosPage() {
         {/* Tabla de movimientos (7 columnas) */}
         <div className="lg:col-span-7 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <h3 className="text-xs font-bold text-darkteal dark:text-softlinen/80 uppercase tracking-wider flex items-center gap-2">
+              <Clock className="w-4 h-4 text-cayenne" />
               Historial de Transacciones Registradas
             </h3>
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-xs text-darkteal dark:text-softlinen/60 font-bold">
               Últimos registros en tiempo real
             </span>
           </div>

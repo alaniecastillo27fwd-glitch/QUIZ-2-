@@ -5,9 +5,7 @@ import {
   ArrowLeftRight, 
   FileText, 
   Calendar, 
-  Building, 
   User, 
-  DollarSign, 
   ShieldCheck,
   PackageCheck
 } from 'lucide-react';
@@ -17,14 +15,13 @@ import { formatFechaLocal, formatCRC } from '../../services/inventoryCalculation
 export default function TimelineTrazabilidad({
   movimientos = [],
   ordenesCompra = [],
-  material = null,
 }) {
   if (!movimientos || movimientos.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-xs">
-        <PackageCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-        <h4 className="text-sm font-bold text-slate-700">Sin historial de movimientos</h4>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+      <div className="bg-white dark:bg-evergreen rounded-2xl border-2 border-darkteal/20 dark:border-darkteal/50 p-12 text-center shadow-xs">
+        <PackageCheck className="w-12 h-12 text-darkteal/40 dark:text-softlinen/40 mx-auto mb-2" />
+        <h4 className="text-base font-black text-evergreen dark:text-softlinen">Sin historial de movimientos</h4>
+        <p className="text-sm text-darkteal dark:text-softlinen/70 mt-1 max-w-sm mx-auto font-medium">
           No hay transacciones registradas para este filtro o el insumo no ha tenido flujo aún.
         </p>
       </div>
@@ -38,11 +35,10 @@ export default function TimelineTrazabilidad({
   });
 
   return (
-    <div className="relative pl-6 sm:pl-8 space-y-6 before:content-[''] before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
+    <div className="relative pl-7 sm:pl-9 space-y-6 before:content-[''] before:absolute before:left-3.5 before:top-3 before:bottom-3 before:w-1 before:bg-darkteal/20 dark:before:bg-darkteal/60">
       {movimientos.map((mov, idx) => {
         const isEntrada = mov.tipo === 'ENTRADA';
         const isSalida = mov.tipo === 'SALIDA';
-        const isTraslado = mov.tipo === 'TRASLADO';
 
         // Intentar cruzar con Orden de Compra
         const linkedOC = ocMap.get(mov.documentoReferencia?.trim().toUpperCase());
@@ -51,63 +47,63 @@ export default function TimelineTrazabilidad({
           <div key={mov.id || idx} className="relative group">
             {/* Timeline Bullet Icon */}
             <div
-              className={`absolute -left-6 sm:-left-8 top-1.5 w-6 h-6 rounded-full border-2 border-white shadow-xs flex items-center justify-center ${
+              className={`absolute -left-7 sm:-left-9 top-1.5 w-7 h-7 rounded-full border-2 border-white dark:border-evergreen shadow-xs flex items-center justify-center font-bold ${
                 isEntrada
-                  ? 'bg-emerald-600 text-white'
+                  ? 'bg-yellowgreen text-evergreen'
                   : isSalida
-                  ? 'bg-rose-600 text-white'
-                  : 'bg-blue-600 text-white'
+                  ? 'bg-cayenne text-white'
+                  : 'bg-darkteal text-softlinen'
               }`}
             >
               {isEntrada ? (
-                <ArrowDownLeft className="w-3 h-3" />
+                <ArrowDownLeft className="w-4 h-4" />
               ) : isSalida ? (
-                <ArrowUpRight className="w-3 h-3" />
+                <ArrowUpRight className="w-4 h-4" />
               ) : (
-                <ArrowLeftRight className="w-3 h-3" />
+                <ArrowLeftRight className="w-4 h-4" />
               )}
             </div>
 
             {/* Event Card */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all text-xs space-y-3">
+            <div className="bg-white dark:bg-evergreen rounded-2xl border-2 border-darkteal/20 dark:border-darkteal/50 p-5 shadow-xs hover:border-yellowgreen transition-all text-sm space-y-4">
               {/* Card Header: Timestamp & Badge */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Badge variant={mov.tipo} size="xs" />
-                  <span className="font-bold text-slate-900 text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-darkteal/15 dark:border-darkteal/40 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <Badge variant={mov.tipo} size="sm" />
+                  <span className="font-black text-evergreen dark:text-softlinen text-base">
                     {mov.materialNombre}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2 text-xs text-darkteal dark:text-softlinen/70 font-bold">
+                  <Calendar className="w-4 h-4 text-yellowgreen" />
                   <span>{formatFechaLocal(mov.fecha, true)}</span>
                 </div>
               </div>
 
               {/* Quantities & Route */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-softlinen/40 dark:bg-darkteal/40 p-3.5 rounded-xl border-2 border-darkteal/15 dark:border-darkteal/50">
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">
+                  <span className="text-xs font-black uppercase text-darkteal dark:text-softlinen/60 block">
                     Volumen Transaccionado
                   </span>
-                  <span className={`text-base font-black ${
-                    isEntrada ? 'text-emerald-700' : isSalida ? 'text-rose-700' : 'text-blue-700'
+                  <span className={`text-lg font-black ${
+                    isEntrada ? 'text-yellowgreen' : isSalida ? 'text-cayenne' : 'text-darkteal dark:text-softlinen'
                   }`}>
-                    {isEntrada ? '+' : isSalida ? '-' : '⇄'}{mov.cantidad} {mov.unidad}
+                    {isEntrada ? '+' : isSalida ? '-' : '⇄'}{Number(mov.cantidad).toLocaleString()} {mov.unidad}
                   </span>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">
+                  <span className="text-xs font-black uppercase text-darkteal dark:text-softlinen/60 block">
                     Flujo de Almacén
                   </span>
-                  <div className="text-slate-800 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">
+                  <div className="text-evergreen dark:text-softlinen font-bold mt-1 flex items-center gap-2 flex-wrap text-xs">
+                    <span className="bg-white dark:bg-evergreen px-2.5 py-1 rounded-md border border-darkteal/20 text-evergreen dark:text-softlinen">
                       {mov.origen}
                     </span>
-                    <span className="text-slate-400 font-bold">→</span>
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-semibold text-slate-900">
+                    <span className="text-cayenne font-black">→</span>
+                    <span className="bg-white dark:bg-evergreen px-2.5 py-1 rounded-md border border-darkteal/20 font-black text-evergreen dark:text-softlinen">
                       {mov.destino}
                     </span>
                   </div>
@@ -115,45 +111,45 @@ export default function TimelineTrazabilidad({
               </div>
 
               {/* Documento y Trazabilidad de Origen (OC / Vale) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-1.5">
+                  <span className="text-xs font-black uppercase text-darkteal dark:text-softlinen/60 block">
                     Comprobante / Documento Soporte
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-xs font-bold text-slate-900 bg-amber-50 text-amber-900 px-2 py-0.5 rounded border border-amber-200/80 inline-flex items-center gap-1">
-                      <FileText className="w-3 h-3 text-amber-700" />
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-evergreen dark:text-softlinen bg-softlinen/70 dark:bg-darkteal/70 px-2.5 py-1 rounded-md border border-darkteal/20 dark:border-darkteal/50 inline-flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-cayenne" />
                       {mov.documentoReferencia}
                     </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
+                    <span className="text-xs text-darkteal dark:text-softlinen/70 font-semibold">
                       ({mov.tipoDocumento})
                     </span>
                   </div>
 
                   {/* Detalle si está vinculado a una OC con precio y proveedor */}
                   {linkedOC && (
-                    <div className="mt-1.5 p-2 rounded bg-amber-50/50 border border-amber-200/60 text-[11px] text-amber-950 space-y-0.5">
-                      <p className="font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                    <div className="mt-2 p-3 rounded-xl bg-yellowgreen/15 border-2 border-yellowgreen text-xs text-evergreen dark:text-softlinen space-y-1">
+                      <p className="font-black flex items-center gap-1.5 text-evergreen dark:text-softlinen">
+                        <ShieldCheck className="w-4 h-4 text-yellowgreen" />
                         Trazabilidad Compra: {linkedOC.proveedor}
                       </p>
-                      <p className="text-slate-600">
-                        Precio pactado: <strong className="text-slate-800">{formatCRC(linkedOC.precioUnitario)}</strong> / {linkedOC.unidad} · Total Facturado: <strong className="text-slate-800">{formatCRC(linkedOC.total)}</strong>
+                      <p className="text-darkteal dark:text-softlinen/80 font-medium">
+                        Precio pactado: <strong className="text-evergreen dark:text-softlinen font-bold">{formatCRC(linkedOC.precioUnitario)}</strong> / {linkedOC.unidad} · Total: <strong className="text-evergreen dark:text-softlinen font-bold">{formatCRC(linkedOC.total)}</strong>
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">
+                <div className="space-y-1.5">
+                  <span className="text-xs font-black uppercase text-darkteal dark:text-softlinen/60 block">
                     Responsable & Motivo
                   </span>
-                  <p className="text-slate-700 font-medium flex items-center gap-1">
-                    <User className="w-3 h-3 text-slate-400" />
+                  <p className="text-evergreen dark:text-softlinen font-bold flex items-center gap-1.5 text-xs">
+                    <User className="w-4 h-4 text-yellowgreen" />
                     {mov.usuario}
                   </p>
                   {mov.motivo && (
-                    <p className="text-[11px] text-slate-500 italic">
+                    <p className="text-xs text-darkteal dark:text-softlinen/70 italic font-medium">
                       "{mov.motivo}"
                     </p>
                   )}
