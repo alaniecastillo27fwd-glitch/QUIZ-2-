@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Calculator, AlertTriangle, Check, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, Calculator, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
 import { calculateStockSeguridad, calculatePuntoReorden, determineMaterialStatus } from '../../services/inventoryCalculations.js';
 
 export default function MaterialModalForm({ isOpen, onClose, onSave }) {
@@ -76,20 +76,14 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
       return;
     }
 
-    if (Number(formData.demandaDiariaPromedio) <= 0 || Number(formData.tiempoEntregaDias) <= 0) {
-      setErrorMsg('La demanda diaria y el tiempo de entrega deben ser mayores a cero.');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
+      setErrorMsg('');
       await onSave({
         ...formData,
-        demandaDiariaPromedio: Number(formData.demandaDiariaPromedio),
-        demandaDiariaMaxima: Number(formData.demandaDiariaMaxima),
-        tiempoEntregaDias: Number(formData.tiempoEntregaDias),
-        stockActual: Number(formData.stockActual),
-        precioUnitarioPromedio: Number(formData.precioUnitarioPromedio),
+        stockSeguridad: ssCalculado,
+        puntoReorden: prCalculado,
+        estado: estadoCalculado,
       });
       onClose();
     } catch (err) {
@@ -100,144 +94,155 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-evergreen/80 animate-fade-in">
       <div 
-        className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]"
-        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-softlinen dark:bg-evergreen border-2 border-darkteal dark:border-darkteal-light rounded-2xl shadow-2xl overflow-hidden animate-scale-in"
+        role="dialog"
+        aria-modal="true"
       >
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
-              <Calculator className="w-4 h-4" />
+        {/* Header con colores sólidos */}
+        <div className="p-6 bg-darkteal text-softlinen flex items-center justify-between border-b-2 border-evergreen dark:border-darkteal-light">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-yellowgreen text-evergreen flex items-center justify-center font-black">
+              <Calculator className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold tracking-tight">
-                Registrar Nuevo Material / Insumo
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Constructora Del Valle S.A. · Parámetros de inventario y punto de reorden
+              <h2 className="text-xl font-bold uppercase tracking-wider text-softlinen">
+                Registrar Material en Catálogo
+              </h2>
+              <p className="text-xs font-bold text-yellowgreen">
+                El Punto de Reorden (PR) se calcula dinámicamente y no se digita
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="w-9 h-9 rounded-lg bg-evergreen hover:bg-cayenne text-softlinen flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Cerrar modal"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 text-xs">
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {errorMsg && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2 text-xs font-semibold">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+            <div className="p-4 rounded-xl bg-cayenne text-white text-sm font-bold flex items-center gap-2 shadow-xs">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Sección 1: Datos Generales */}
-          <div className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
-              1. Ficha de Identificación
+          {/* Sección 1: Datos Básicos */}
+          <div className="space-y-4">
+            <p className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen border-b-2 border-darkteal/15 pb-1">
+              1. Identificación y Unidad de Medida
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold text-slate-700">Código Interno *</label>
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                  Código de Insumo *
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="codigo"
+                    required
+                    value={formData.codigo}
+                    onChange={handleChange}
+                    placeholder="Ej. CEM-50KG"
+                    className="flex-1 bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2 text-sm font-mono font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
+                  />
                   <button
                     type="button"
                     onClick={handleGenerateCode}
-                    className="text-[10px] text-amber-600 hover:underline flex items-center gap-0.5 font-bold"
+                    className="px-3 py-2 rounded-xl bg-darkteal hover:bg-darkteal-light text-softlinen text-xs font-bold transition-all cursor-pointer"
+                    title="Generar código sugerido"
                   >
-                    <Sparkles className="w-2.5 h-2.5" /> Auto
+                    <Sparkles className="w-4 h-4" />
                   </button>
                 </div>
-                <input
-                  type="text"
-                  name="codigo"
-                  required
-                  value={formData.codigo}
-                  onChange={handleChange}
-                  placeholder="Ej. CEM-50KG"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono font-semibold focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                />
               </div>
 
-              <div className="sm:col-span-2">
-                <label className="block font-semibold text-slate-700 mb-1">Nombre del Material *</label>
+              <div>
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                  Nombre del Material *
+                </label>
                 <input
                   type="text"
                   name="nombre"
                   required
                   value={formData.nombre}
                   onChange={handleChange}
-                  placeholder="Ej. Cemento gris de uso general (50kg)"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  placeholder="Ej. Cemento gris 50 kg"
+                  className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2 text-sm font-semibold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Categoría</label>
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                  Categoría
+                </label>
                 <select
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3.5 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen cursor-pointer"
                 >
                   <option value="Aglomerantes">Aglomerantes (Cementos/Cales)</option>
                   <option value="Aceros Estructurales">Aceros Estructurales</option>
                   <option value="Mampostería">Mampostería (Blocks/Ladrillos)</option>
                   <option value="Áridos">Áridos (Arena/Piedra)</option>
-                  <option value="Instalaciones">Instalaciones (PVC/Sanitaria)</option>
+                  <option value="Tuberías">Tuberías y PVC</option>
+                  <option value="Acabados">Acabados y Pinturas</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Unidad de Medida</label>
-                <select
-                  name="unidad"
-                  value={formData.unidad}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
-                >
-                  <option value="sacos">sacos</option>
-                  <option value="unid">unid (unidades)</option>
-                  <option value="m³">m³ (metros cúbicos)</option>
-                  <option value="tubos">tubos</option>
-                  <option value="kg">kg (kilogramos)</option>
-                  <option value="galones">galones</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ubicación Inicial</label>
-                <select
-                  name="ubicacionPrincipal"
-                  value={formData.ubicacionPrincipal}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-medium focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
-                >
-                  <option value="Bodega Central">Bodega Central</option>
-                  <option value="Obras">Obras (Frente Activo)</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                    Unidad
+                  </label>
+                  <input
+                    type="text"
+                    name="unidad"
+                    value={formData.unidad}
+                    onChange={handleChange}
+                    placeholder="sacos, unid, m³"
+                    className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                    Ubicación
+                  </label>
+                  <select
+                    name="ubicacionPrincipal"
+                    value={formData.ubicacionPrincipal}
+                    onChange={handleChange}
+                    className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-2 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen cursor-pointer"
+                  >
+                    <option value="Bodega Central">Bodega Central</option>
+                    <option value="Obras">Obras</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Sección 2: Parámetros Operativos de Demanda y Plazo */}
-          <div className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
+          {/* Sección 2: Parámetros de Demanda y Plazo */}
+          <div className="space-y-4">
+            <p className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen border-b-2 border-darkteal/15 pb-1">
               2. Parámetros de Consumo y Proveedor
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Stock Actual Inicial</label>
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
+                  Stock Inicial
+                </label>
                 <input
                   type="number"
                   name="stockActual"
@@ -245,12 +250,12 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                   required
                   value={formData.stockActual}
                   onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3 py-2 text-sm font-black text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1" title="Demanda diaria promedio">
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
                   Demanda Prom. (d) *
                 </label>
                 <input
@@ -260,12 +265,12 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                   required
                   value={formData.demandaDiariaPromedio}
                   onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1" title="Demanda diaria máxima esperada">
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
                   Demanda Máx. *
                 </label>
                 <input
@@ -275,14 +280,14 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                   required
                   value={formData.demandaDiariaMaxima}
                   onChange={handleChange}
-                  className={`w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 ${
-                    errorCalculo ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                  className={`w-full bg-white dark:bg-darkteal/60 border-2 rounded-xl px-3 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden ${
+                    errorCalculo ? 'border-cayenne bg-cayenne/10' : 'border-darkteal/20 dark:border-darkteal focus:border-yellowgreen'
                   }`}
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1" title="Lead Time: tiempo de entrega del proveedor">
+                <label className="block font-bold text-evergreen dark:text-softlinen mb-1.5">
                   Plazo Entrega (L) *
                 </label>
                 <div className="relative">
@@ -293,9 +298,9 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                     required
                     value={formData.tiempoEntregaDias}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+                    className="w-full bg-white dark:bg-darkteal/60 border-2 border-darkteal/20 dark:border-darkteal rounded-xl px-3 py-2 text-sm font-bold text-evergreen dark:text-softlinen focus:outline-hidden focus:border-yellowgreen"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-darkteal/70 dark:text-softlinen/70 text-xs font-bold">
                     días
                   </span>
                 </div>
@@ -304,25 +309,25 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
           </div>
 
           {/* SECCIÓN 3: REGLA DE NEGOCIO OBLIGATORIA (CÁLCULOS READ-ONLY) */}
-          <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/90 space-y-3">
+          <div className="p-5 rounded-2xl bg-white dark:bg-darkteal/40 border-2 border-darkteal dark:border-yellowgreen/50 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>Cálculo Reactivo Oficial (Opción 2 - Quiz #2)</span>
+              <div className="flex items-center gap-2 text-evergreen dark:text-softlinen font-black text-sm">
+                <ShieldCheck className="w-5 h-5 text-yellowgreen" />
+                <span>Cálculo Reactivo Oficial (Opción 2)</span>
               </div>
-              <span className="text-[10px] font-semibold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
-                Campos protegidos no editables
+              <span className="text-xs font-bold text-evergreen bg-yellowgreen px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Campos Protegidos
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* SS READONLY */}
-              <div className="bg-white p-3 rounded-lg border border-amber-200 shadow-2xs">
-                <span className="block text-[10px] font-bold uppercase text-slate-500">
+              <div className="bg-softlinen/50 dark:bg-evergreen p-4 rounded-xl border-2 border-darkteal/30 dark:border-darkteal">
+                <span className="block text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
                   Stock de Seguridad (SS)
                 </span>
-                <div className="text-lg font-black text-slate-900 mt-0.5">
-                  {ssCalculado} <span className="text-xs font-normal text-slate-500">{formData.unidad}</span>
+                <div className="text-2xl font-black text-evergreen dark:text-softlinen mt-1">
+                  {ssCalculado} <span className="text-sm font-semibold">{formData.unidad}</span>
                 </div>
                 <input
                   type="text"
@@ -333,18 +338,18 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                   className="sr-only"
                   aria-label="Stock de Seguridad calculado"
                 />
-                <span className="text-[9px] text-slate-400 font-mono block mt-1">
-                  (dMax - d) × L = ({formData.demandaDiariaMaxima || 0} - {formData.demandaDiariaPromedio || 0}) × {formData.tiempoEntregaDias || 0}
+                <span className="text-xs text-darkteal dark:text-softlinen/70 font-mono block mt-1">
+                  ({formData.demandaDiariaMaxima || 0} - {formData.demandaDiariaPromedio || 0}) × {formData.tiempoEntregaDias || 0}
                 </span>
               </div>
 
               {/* PR READONLY */}
-              <div className="bg-white p-3 rounded-lg border-2 border-amber-500 shadow-2xs">
-                <span className="block text-[10px] font-bold uppercase text-amber-800">
+              <div className="bg-softlinen/50 dark:bg-evergreen p-4 rounded-xl border-2 border-yellowgreen shadow-xs">
+                <span className="block text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
                   Punto de Reorden (PR)
                 </span>
-                <div className="text-lg font-black text-amber-950 mt-0.5">
-                  {prCalculado} <span className="text-xs font-normal text-amber-700">{formData.unidad}</span>
+                <div className="text-2xl font-black text-evergreen dark:text-softlinen mt-1">
+                  {prCalculado} <span className="text-sm font-semibold">{formData.unidad}</span>
                 </div>
                 <input
                   type="text"
@@ -355,55 +360,49 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
                   className="sr-only"
                   aria-label="Punto de Reorden calculado"
                 />
-                <span className="text-[9px] text-slate-400 font-mono block mt-1">
-                  (d × L) + SS = ({formData.demandaDiariaPromedio || 0} × {formData.tiempoEntregaDias || 0}) + {ssCalculado}
+                <span className="text-xs text-darkteal dark:text-softlinen/70 font-mono block mt-1">
+                  ({formData.demandaDiariaPromedio || 0} × {formData.tiempoEntregaDias || 0}) + {ssCalculado}
                 </span>
               </div>
 
               {/* ESTADO ESTIMADO */}
-              <div className="bg-white p-3 rounded-lg border border-amber-200 shadow-2xs">
-                <span className="block text-[10px] font-bold uppercase text-slate-500">
-                  Estado Proyectado
+              <div className="bg-softlinen/50 dark:bg-evergreen p-4 rounded-xl border-2 border-darkteal/30 dark:border-darkteal flex flex-col justify-between">
+                <span className="block text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
+                  Estado Inicial
                 </span>
-                <div className="mt-1">
-                  <span className={`inline-block px-2.5 py-1 rounded text-xs font-black ${
+                <div className="my-1">
+                  <span className={`inline-block px-3 py-1 rounded-lg text-xs font-black uppercase ${
                     estadoCalculado === 'CRÍTICO' 
-                      ? 'bg-rose-100 text-rose-800' 
+                      ? 'bg-cayenne text-white' 
                       : estadoCalculado === 'ALERTA'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-emerald-100 text-emerald-800'
+                      ? 'bg-darkteal text-yellowgreen'
+                      : 'bg-yellowgreen text-evergreen'
                   }`}>
                     {estadoCalculado}
                   </span>
                 </div>
-                <span className="text-[9px] text-slate-500 block mt-1">
-                  {formData.stockActual <= prCalculado ? 'Stock bajo o igual al PR' : 'Stock por encima de seguridad'}
+                <span className="text-xs text-darkteal dark:text-softlinen/70 font-medium">
+                  Stock: {formData.stockActual} vs PR: {prCalculado}
                 </span>
               </div>
             </div>
-
-            <p className="text-[10px] text-amber-800 leading-tight">
-              * <em>Restricción institucional:</em> El Punto de Reorden ($PR$) y el Stock de Seguridad ($SS$) son calculados automáticamente por el sistema conforme a la pauta técnica. No pueden modificarse manualmente.
-            </p>
           </div>
 
-          {/* Footer Buttons */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          {/* Footer del Formulario */}
+          <div className="pt-2 flex justify-end gap-3 border-t-2 border-darkteal/15">
             <button
               type="button"
               onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors"
+              className="px-5 py-2.5 rounded-xl border-2 border-darkteal/30 text-evergreen dark:text-softlinen text-sm font-bold hover:bg-darkteal/10 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting || Boolean(errorCalculo)}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs transition-colors shadow-xs disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-yellowgreen hover:bg-yellowgreen-light text-evergreen font-black text-sm uppercase tracking-wider transition-all transform hover:-translate-y-0.5 cursor-pointer shadow-sm disabled:opacity-50"
             >
-              <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Guardando...' : 'Confirmar y Guardar Material'}</span>
+              {isSubmitting ? 'Guardando...' : 'Guardar Material'}
             </button>
           </div>
         </form>
@@ -411,4 +410,3 @@ export default function MaterialModalForm({ isOpen, onClose, onSave }) {
     </div>
   );
 }
-

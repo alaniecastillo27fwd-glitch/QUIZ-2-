@@ -3,27 +3,78 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-evergreen: #002626;
+    --color-darkteal: #0E4749;
+    --color-yellowgreen: #95C623;
+    --color-cayenne: #E55812;
+    --color-softlinen: #EFE7DA;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-zinc-50 text-zinc-900 antialiased min-h-screen font-sans;
+    @apply bg-softlinen text-evergreen font-sans min-h-screen antialiased selection:bg-yellowgreen selection:text-evergreen transition-colors duration-200;
     margin: 0;
   }
 
-  /* Custom scrollbar for enterprise table and sidebars */
+  .dark body,
+  body.dark {
+    @apply bg-evergreen text-softlinen;
+  }
+
+  /* Custom scrollbar matching palette */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #f4f4f5;
+    background: #EFE7DA;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #001a1a;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
+    background: #0E4749;
+    border-radius: 4px;
+    border: 2px solid #EFE7DA;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #0E4749;
+    border-radius: 4px;
+    border: 2px solid #001a1a;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: #95C623;
+  }
+}
+
+@layer utilities {
+  /* Solid border and card utility classes (sin difuminaciones ni sombras difusas) */
+  .card-solid {
+    @apply bg-white dark:bg-darkteal/70 border-2 border-darkteal/20 dark:border-darkteal rounded-xl transition-all duration-200;
+  }
+
+  .card-solid:hover {
+    @apply border-darkteal/50 dark:border-yellowgreen/60;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-yellowgreen hover:bg-yellowgreen-light active:bg-yellowgreen-dark text-evergreen font-bold text-sm tracking-wide transition-all duration-150 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-darkteal hover:bg-darkteal-light text-softlinen font-bold text-sm tracking-wide transition-all duration-150 cursor-pointer;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cayenne hover:bg-cayenne-light text-white font-bold text-sm tracking-wide transition-all duration-150 cursor-pointer;
   }
 }

@@ -2,11 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
   History, 
-  Boxes, 
   ArrowDownLeft, 
   ArrowUpRight, 
   ArrowLeftRight, 
-  ListFilter, 
   Table as TableIcon,
   Clock,
   ShieldCheck
@@ -71,10 +69,10 @@ export default function HistorialPage() {
       // Filtro de búsqueda textual
       const matchesSearch =
         !searchTerm ||
-        m.documentoReferencia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.materialNombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.origen.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.destino.toLowerCase().includes(searchTerm.toLowerCase());
+        m.documentoReferencia?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.materialNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.origen?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.destino?.toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesMaterial && matchesTipoDoc && matchesSearch;
     });
@@ -84,58 +82,58 @@ export default function HistorialPage() {
   const summaryMetrics = useMemo(() => {
     const entradas = filteredMovimientos
       .filter((m) => m.tipo === 'ENTRADA')
-      .reduce((acc, m) => acc + m.cantidad, 0);
+      .reduce((acc, m) => acc + Number(m.cantidad || 0), 0);
 
     const salidas = filteredMovimientos
       .filter((m) => m.tipo === 'SALIDA')
-      .reduce((acc, m) => acc + m.cantidad, 0);
+      .reduce((acc, m) => acc + Number(m.cantidad || 0), 0);
 
     const traslados = filteredMovimientos
       .filter((m) => m.tipo === 'TRASLADO')
-      .reduce((acc, m) => acc + m.cantidad, 0);
+      .reduce((acc, m) => acc + Number(m.cantidad || 0), 0);
 
     return { entradas, salidas, traslados, total: filteredMovimientos.length };
   }, [filteredMovimientos]);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto animate-fade-in-up">
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-evergreen border-2 border-darkteal/20 dark:border-darkteal/50 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 font-semibold text-xs tracking-wider uppercase mb-1">
-            <History className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center gap-2 text-darkteal dark:text-softlinen/70 font-bold text-xs tracking-wider uppercase mb-1">
+            <History className="w-4 h-4 text-cayenne" />
             <span>Auditoría & Trazabilidad · Constructora Del Valle S.A.</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-black text-evergreen dark:text-softlinen tracking-tight">
             Historial de Trazabilidad por Insumo
           </h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
+          <p className="text-sm text-darkteal dark:text-softlinen/70 mt-1 font-medium">
             Reconstrucción cronológica de existencias, vinculación directa a Órdenes de Compra (OC) y Vales de Salida a obra.
           </p>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 bg-softlinen/60 dark:bg-darkteal/60 p-1.5 rounded-xl border-2 border-darkteal/20 dark:border-darkteal/50 self-start sm:self-auto">
           <button
             onClick={() => setViewMode('TIMELINE')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
               viewMode === 'TIMELINE'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-evergreen dark:bg-yellowgreen text-softlinen dark:text-evergreen shadow-xs'
+                : 'text-darkteal dark:text-softlinen hover:text-evergreen'
             }`}
           >
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-4 h-4 text-yellowgreen" />
             Línea de Tiempo
           </button>
           <button
             onClick={() => setViewMode('TABLE')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
               viewMode === 'TABLE'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-evergreen dark:bg-yellowgreen text-softlinen dark:text-evergreen shadow-xs'
+                : 'text-darkteal dark:text-softlinen hover:text-evergreen'
             }`}
           >
-            <TableIcon className="w-3.5 h-3.5" />
+            <TableIcon className="w-4 h-4 text-cayenne" />
             Vista Tabular
           </button>
         </div>
@@ -153,58 +151,58 @@ export default function HistorialPage() {
       />
 
       {/* Summary KPI Ribbon for Selected Filter */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-evergreen p-5 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal/50 shadow-xs transition-colors">
+          <span className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-softlinen/60 block">
             {selectedMaterial ? `Stock ${selectedMaterial.nombre}` : 'Insumos Evaluados'}
           </span>
-          <span className="text-xl font-black text-slate-900 mt-1 block">
+          <span className="text-2xl font-black text-evergreen dark:text-softlinen mt-1 block">
             {selectedMaterial 
-              ? `${selectedMaterial.stockActual.toLocaleString()} ${selectedMaterial.unidad}`
+              ? `${Number(selectedMaterial.stockActual).toLocaleString()} ${selectedMaterial.unidad}`
               : `${materiales.length} Materiales`}
           </span>
           {selectedMaterial && (
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-xs text-darkteal dark:text-softlinen/70 font-semibold block mt-1">
               Ubicación: {selectedMaterial.ubicacionPrincipal}
             </span>
           )}
         </div>
 
-        <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block flex items-center gap-1">
-            <ArrowDownLeft className="w-3.5 h-3.5" />
-            Entradas Totales (vía OC)
+        <div className="bg-white dark:bg-evergreen p-5 rounded-2xl border-2 border-yellowgreen shadow-xs transition-colors">
+          <span className="text-xs font-black uppercase tracking-wider text-yellowgreen block flex items-center gap-1.5">
+            <ArrowDownLeft className="w-4 h-4" />
+            Entradas Totales (OC)
           </span>
-          <span className="text-xl font-black text-emerald-950 mt-1 block">
+          <span className="text-2xl font-black text-evergreen dark:text-softlinen mt-1 block">
             +{summaryMetrics.entradas.toLocaleString()}
           </span>
-          <span className="text-[11px] text-emerald-700 font-medium">
+          <span className="text-xs text-darkteal dark:text-softlinen/70 font-semibold block mt-1">
             Respaldadas con Orden de Compra
           </span>
         </div>
 
-        <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 block flex items-center gap-1">
-            <ArrowUpRight className="w-3.5 h-3.5" />
+        <div className="bg-white dark:bg-evergreen p-5 rounded-2xl border-2 border-cayenne shadow-xs transition-colors">
+          <span className="text-xs font-black uppercase tracking-wider text-cayenne block flex items-center gap-1.5">
+            <ArrowUpRight className="w-4 h-4" />
             Salidas a Obra (Vales)
           </span>
-          <span className="text-xl font-black text-rose-950 mt-1 block">
+          <span className="text-2xl font-black text-cayenne mt-1 block">
             -{summaryMetrics.salidas.toLocaleString()}
           </span>
-          <span className="text-[11px] text-rose-700 font-medium">
+          <span className="text-xs text-darkteal dark:text-softlinen/70 font-semibold block mt-1">
             Despachos a frentes de trabajo
           </span>
         </div>
 
-        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 block flex items-center gap-1">
-            <ArrowLeftRight className="w-3.5 h-3.5" />
+        <div className="bg-white dark:bg-evergreen p-5 rounded-2xl border-2 border-darkteal/40 dark:border-darkteal/70 shadow-xs transition-colors">
+          <span className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-softlinen/80 block flex items-center gap-1.5">
+            <ArrowLeftRight className="w-4 h-4 text-yellowgreen" />
             Reubicaciones / Traslados
           </span>
-          <span className="text-xl font-black text-blue-950 mt-1 block">
+          <span className="text-2xl font-black text-evergreen dark:text-softlinen mt-1 block">
             ⇄{summaryMetrics.traslados.toLocaleString()}
           </span>
-          <span className="text-[11px] text-blue-700 font-medium">
+          <span className="text-xs text-darkteal dark:text-softlinen/70 font-semibold block mt-1">
             Entre Bodega y Obras
           </span>
         </div>
@@ -212,21 +210,20 @@ export default function HistorialPage() {
 
       {/* Main View Area */}
       {viewMode === 'TIMELINE' ? (
-        <div className="bg-slate-50/60 p-6 rounded-2xl border border-slate-200/80">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <div className="bg-softlinen/30 dark:bg-darkteal/20 p-6 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal/50">
+          <div className="mb-5 flex items-center justify-between">
+            <h3 className="text-xs font-black text-evergreen dark:text-softlinen uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-yellowgreen" />
               Línea de Tiempo Cronológica de Trazabilidad ({filteredMovimientos.length} eventos)
             </h3>
-            <span className="text-[11px] text-slate-500 font-medium">
-              Orden cronológico descendente (más recientes primero)
+            <span className="text-xs text-darkteal dark:text-softlinen/70 font-bold">
+              Orden cronológico descendente
             </span>
           </div>
 
           <TimelineTrazabilidad
             movimientos={filteredMovimientos}
             ordenesCompra={ordenesCompra}
-            material={selectedMaterial}
           />
         </div>
       ) : (

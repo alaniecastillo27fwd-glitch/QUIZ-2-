@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import Badge from '../common/Badge';
 import { formatFechaLocal } from '../../services/inventoryCalculations.js';
 
@@ -31,55 +31,58 @@ export default function TrazabilidadTable({ movimientos = [] }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+    <div className="bg-white dark:bg-evergreen rounded-2xl border-2 border-darkteal/20 dark:border-darkteal/50 shadow-xs overflow-hidden transition-colors">
+      <div className="p-4 border-b-2 border-darkteal/15 dark:border-darkteal/40 flex items-center justify-between bg-softlinen/40 dark:bg-darkteal/40">
+        <h4 className="text-xs font-black uppercase tracking-wider text-evergreen dark:text-softlinen">
           Registro Tabular de Auditoría ({movimientos.length} eventos)
         </h4>
         <button
           onClick={exportToCSV}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-darkteal/30 hover:bg-softlinen/60 text-evergreen dark:text-softlinen text-xs font-black uppercase tracking-wider transition-colors active:scale-95"
         >
-          <Download className="w-3.5 h-3.5" />
+          <Download className="w-4 h-4 text-yellowgreen" />
           Exportar CSV
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+        <table className="w-full text-left text-sm border-collapse">
+          <thead className="bg-softlinen/60 dark:bg-darkteal/60 border-b-2 border-darkteal/20 dark:border-darkteal/50 text-evergreen dark:text-softlinen font-bold uppercase tracking-wider text-xs">
             <tr>
-              <th className="py-2.5 px-3">Fecha</th>
-              <th className="py-2.5 px-3">Flujo</th>
-              <th className="py-2.5 px-3">Material</th>
-              <th className="py-2.5 px-3 text-right">Cantidad</th>
-              <th className="py-2.5 px-3">Origen</th>
-              <th className="py-2.5 px-3">Destino</th>
-              <th className="py-2.5 px-3">Documento</th>
-              <th className="py-2.5 px-3">Usuario</th>
+              <th className="py-3 px-4">Fecha</th>
+              <th className="py-3 px-4">Flujo</th>
+              <th className="py-3 px-4">Material</th>
+              <th className="py-3 px-4 text-right">Cantidad</th>
+              <th className="py-3 px-4">Origen</th>
+              <th className="py-3 px-4">Destino</th>
+              <th className="py-3 px-4">Documento</th>
+              <th className="py-3 px-4">Usuario</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
+          <tbody className="divide-y-2 divide-darkteal/10 dark:divide-darkteal/40 text-evergreen dark:text-softlinen font-medium">
             {movimientos.map((m) => (
-              <tr key={m.id} className="hover:bg-slate-50/80">
-                <td className="py-2.5 px-3 whitespace-nowrap text-slate-500 font-mono text-[11px]">
+              <tr key={m.id} className="hover:bg-softlinen/30 dark:hover:bg-darkteal/30 transition-colors">
+                <td className="py-3 px-4 whitespace-nowrap text-darkteal dark:text-softlinen/80 font-bold text-xs">
                   {formatFechaLocal(m.fecha, true)}
                 </td>
-                <td className="py-2.5 px-3 whitespace-nowrap">
-                  <Badge variant={m.tipo} size="xs" />
+                <td className="py-3 px-4 whitespace-nowrap">
+                  <Badge variant={m.tipo} size="sm" />
                 </td>
-                <td className="py-2.5 px-3 font-bold text-slate-900 whitespace-nowrap">
+                <td className="py-3 px-4 font-bold text-evergreen dark:text-white whitespace-nowrap text-sm">
                   {m.materialNombre}
                 </td>
-                <td className="py-2.5 px-3 text-right font-bold whitespace-nowrap">
-                  {m.cantidad} {m.unidad}
+                <td className="py-3 px-4 text-right font-black whitespace-nowrap text-sm">
+                  <span className={m.tipo === 'ENTRADA' ? 'text-yellowgreen' : m.tipo === 'SALIDA' ? 'text-cayenne' : 'text-darkteal dark:text-softlinen'}>
+                    {m.tipo === 'ENTRADA' ? '+' : m.tipo === 'SALIDA' ? '-' : '⇄'}{Number(m.cantidad).toLocaleString()}
+                  </span>{' '}
+                  <span className="text-xs text-darkteal/70 dark:text-softlinen/60 font-semibold">{m.unidad}</span>
                 </td>
-                <td className="py-2.5 px-3 text-slate-600">{m.origen}</td>
-                <td className="py-2.5 px-3 text-slate-900 font-semibold">{m.destino}</td>
-                <td className="py-2.5 px-3 whitespace-nowrap font-mono text-slate-800 font-bold">
+                <td className="py-3 px-4 text-xs font-semibold text-darkteal dark:text-softlinen/80">{m.origen}</td>
+                <td className="py-3 px-4 text-xs font-bold text-evergreen dark:text-softlinen">{m.destino}</td>
+                <td className="py-3 px-4 whitespace-nowrap font-mono text-xs text-evergreen dark:text-softlinen font-bold">
                   {m.documentoReferencia}
                 </td>
-                <td className="py-2.5 px-3 text-slate-500">{m.usuario}</td>
+                <td className="py-3 px-4 text-xs text-darkteal dark:text-softlinen/70 font-semibold">{m.usuario}</td>
               </tr>
             ))}
           </tbody>

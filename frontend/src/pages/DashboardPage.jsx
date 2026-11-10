@@ -6,19 +6,18 @@ import {
   ArrowLeftRight, 
   CopyCheck, 
   PlusCircle, 
-  Search, 
   FileWarning, 
-  History,
-  TrendingDown,
-  Layers,
-  Clock
+  TrendingDown, 
+  Clock,
+  ArrowRight,
+  HardHat
 } from 'lucide-react';
 
 import StatCard from '../components/common/StatCard';
 import Badge from '../components/common/Badge';
 import ProgressBar from '../components/common/ProgressBar';
 import { useMateriales, useAlertas, useMovimientos } from '../hooks/useInventory.js';
-import { formatFechaLocal, formatCRC } from '../services/inventoryCalculations.js';
+import { formatFechaLocal } from '../services/inventoryCalculations.js';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -28,40 +27,44 @@ export default function DashboardPage() {
 
   const loading = loadingMats || loadingAlertas || loadingMovs;
 
-  // Filtrar materiales críticos o en alerta para la sección central
   const materialesCriticosOAlerta = materiales.filter(
     (m) => m.estado === 'CRÍTICO' || m.estado === 'ALERTA'
   );
 
-  // Últimos 4 movimientos de almacén
-  const ultimosMovimientos = movimientos.slice(0, 4);
+  const ultimosMovimientos = movimientos.slice(0, 5);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-darkteal/20 dark:border-darkteal pb-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-yellowgreen"></span>
+            <span className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
+              Constructora Del Valle S.A.
+            </span>
+          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-evergreen dark:text-softlinen tracking-tight">
             Panel de Control Operativo
           </h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
+          <p className="text-sm font-semibold text-darkteal dark:text-softlinen/80 mt-1">
             Monitoreo en tiempo real de inventarios, consumo de materiales y prevención de desabastecimiento en frentes de obra.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/movimientos')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellowgreen hover:bg-yellowgreen-light active:bg-yellowgreen-dark text-evergreen text-sm font-black uppercase tracking-wider transition-all transform hover:-translate-y-0.5 shadow-sm cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
-            Nueva Entrada / Salida
+            Nueva Transacción
           </button>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           title="Total Materiales"
           value={loading ? '...' : materiales.length}
@@ -100,56 +103,59 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Resumen de Existencias Críticas (2 cols) */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
-                  <TrendingDown className="w-4 h-4" />
+          <div className="bg-white dark:bg-darkteal/60 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal shadow-sm overflow-hidden">
+            <div className="p-6 border-b-2 border-darkteal/15 dark:border-darkteal flex items-center justify-between bg-softlinen/40 dark:bg-darkteal">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cayenne text-white flex items-center justify-center font-bold shadow-xs">
+                  <TrendingDown className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                  <h3 className="text-base font-extrabold text-evergreen dark:text-softlinen tracking-tight">
                     Existencias Críticas y Próximas a Reorden
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs font-bold text-darkteal dark:text-yellowgreen">
                     Insumos por debajo o al límite del Punto de Reorden (PR)
                   </p>
                 </div>
               </div>
 
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              <span className="text-xs font-black px-3 py-1 rounded-full bg-evergreen text-yellowgreen dark:bg-yellowgreen dark:text-evergreen uppercase tracking-wide">
                 {materialesCriticosOAlerta.length} Materiales
               </span>
             </div>
 
             {/* List / Table of Critical Materials */}
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y-2 divide-darkteal/10 dark:divide-darkteal">
               {materialesCriticosOAlerta.length > 0 ? (
                 materialesCriticosOAlerta.map((mat) => (
-                  <div key={mat.id} className="p-5 hover:bg-slate-50/70 transition-colors space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div key={mat.id} className="p-6 hover:bg-softlinen/20 dark:hover:bg-darkteal/80 transition-colors space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-900">{mat.nombre}</span>
-                          <span className="text-xs text-slate-600 font-mono">({mat.codigo})</span>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="font-extrabold text-base text-evergreen dark:text-softlinen">
+                            {mat.nombre}
+                          </span>
+                          <span className="text-xs text-darkteal dark:text-yellowgreen font-mono font-bold px-2 py-0.5 rounded bg-softlinen dark:bg-evergreen border border-darkteal/20">
+                            {mat.codigo}
+                          </span>
                           <Badge variant={mat.estado} />
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Ubicación: <strong className="text-slate-700 font-semibold">{mat.ubicacionPrincipal}</strong> · Lead Time: {mat.tiempoEntregaDias} días
+                        <p className="text-xs md:text-sm text-evergreen/80 dark:text-softlinen/80 mt-1 font-medium">
+                          Ubicación: <strong className="text-evergreen dark:text-yellowgreen">{mat.ubicacionPrincipal}</strong> · Lead Time: {mat.tiempoEntregaDias} días
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 sm:self-center">
-                        <button
-                          onClick={() => navigate(`/historial?material=${mat.id}`)}
-                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
-                        >
-                          Ver Trazabilidad
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => navigate(`/historial?material=${mat.id}`)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-darkteal hover:bg-darkteal-light text-softlinen text-xs md:text-sm font-bold transition-all transform hover:-translate-y-0.5 cursor-pointer shrink-0"
+                      >
+                        <span>Ver Trazabilidad</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
 
                     {/* Progress representation */}
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <div className="bg-softlinen/30 dark:bg-evergreen p-4 rounded-xl border border-darkteal/20 dark:border-darkteal">
                       <ProgressBar
                         current={mat.stockActual}
                         target={mat.puntoReorden}
@@ -157,8 +163,8 @@ export default function DashboardPage() {
                         label="Comparativa Stock Actual vs Punto de Reorden (PR)"
                       />
                       {mat.deficit > 0 && (
-                        <p className="text-[11px] font-semibold text-rose-700 mt-2 flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" />
+                        <p className="text-xs font-bold text-cayenne mt-2.5 flex items-center gap-1.5">
+                          <AlertTriangle className="w-4 h-4 shrink-0" />
                           Déficit de reposición estimado: {mat.deficit.toLocaleString()} {mat.unidad} para alcanzar el nivel de seguridad.
                         </p>
                       )}
@@ -166,7 +172,7 @@ export default function DashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="p-8 text-center text-slate-600 text-xs">
+                <div className="p-10 text-center text-evergreen/70 dark:text-softlinen/70 text-sm font-medium">
                   No hay insumos en nivel crítico. Los inventarios se encuentran por encima del Punto de Reorden.
                 </div>
               )}
@@ -177,106 +183,115 @@ export default function DashboardPage() {
         {/* Right Column: Accesos Rápidos & Actividad Reciente (1 col) */}
         <div className="space-y-6">
           {/* Accesos Rápidos */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          <div className="bg-white dark:bg-darkteal/60 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal p-6 shadow-sm">
+            <h3 className="text-xs font-black text-darkteal dark:text-yellowgreen uppercase tracking-wider mb-4">
               Accesos Rápidos
             </h3>
-            <div className="grid grid-cols-1 gap-2.5">
+            <div className="grid grid-cols-1 gap-3">
               <button
                 onClick={() => navigate('/movimientos')}
-                className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-all group"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-darkteal/20 dark:border-darkteal hover:border-yellowgreen bg-softlinen/30 dark:bg-darkteal text-left transition-all group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                    <ArrowLeftRight className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl bg-yellowgreen text-evergreen flex items-center justify-center shrink-0 font-bold">
+                    <ArrowLeftRight className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-800 group-hover:text-slate-950">
+                    <p className="text-sm font-extrabold text-evergreen dark:text-softlinen group-hover:text-yellowgreen transition-colors">
                       Registrar Movimiento
                     </p>
-                    <p className="text-[10px] text-slate-500">Entrada, salida o traslado</p>
+                    <p className="text-xs text-darkteal dark:text-softlinen/70 font-medium">
+                      Entrada, salida o traslado
+                    </p>
                   </div>
                 </div>
+                <ArrowRight className="w-4 h-4 text-darkteal dark:text-yellowgreen group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={() => navigate('/materiales')}
-                className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-all group"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-darkteal/20 dark:border-darkteal hover:border-yellowgreen bg-softlinen/30 dark:bg-darkteal text-left transition-all group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
-                    <Search className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl bg-darkteal text-softlinen flex items-center justify-center shrink-0 font-bold">
+                    <Boxes className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-800 group-hover:text-slate-950">
+                    <p className="text-sm font-extrabold text-evergreen dark:text-softlinen group-hover:text-yellowgreen transition-colors">
                       Consultar Catálogo
                     </p>
-                    <p className="text-[10px] text-slate-500">Parámetros de demanda y SS</p>
+                    <p className="text-xs text-darkteal dark:text-softlinen/70 font-medium">
+                      Parámetros de demanda y SS
+                    </p>
                   </div>
                 </div>
+                <ArrowRight className="w-4 h-4 text-darkteal dark:text-yellowgreen group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={() => navigate('/alertas')}
-                className="w-full flex items-center justify-between p-3 rounded-lg border border-amber-200/80 bg-amber-50/40 hover:bg-amber-50 text-left transition-all group"
+                className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-cayenne/40 dark:border-cayenne/60 hover:border-cayenne bg-cayenne/10 dark:bg-darkteal text-left transition-all group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                    <FileWarning className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl bg-cayenne text-white flex items-center justify-center shrink-0 font-bold">
+                    <FileWarning className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-amber-950 group-hover:text-amber-900">
+                    <p className="text-sm font-extrabold text-evergreen dark:text-softlinen group-hover:text-cayenne transition-colors">
                       Reporte de Duplicados (A3)
                     </p>
-                    <p className="text-[10px] text-amber-700">Auditoría de compras cruzadas</p>
+                    <p className="text-xs text-darkteal dark:text-softlinen/70 font-medium">
+                      Auditoría de compras cruzadas
+                    </p>
                   </div>
                 </div>
+                <ArrowRight className="w-4 h-4 text-cayenne group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
 
           {/* Actividad Reciente */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+          <div className="bg-white dark:bg-darkteal/60 rounded-2xl border-2 border-darkteal/20 dark:border-darkteal p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 border-b-2 border-darkteal/15 dark:border-darkteal pb-3">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-500" />
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                <Clock className="w-5 h-5 text-darkteal dark:text-yellowgreen" />
+                <h3 className="text-xs font-black text-evergreen dark:text-softlinen uppercase tracking-wider">
                   Últimos Movimientos
                 </h3>
               </div>
               <button
                 onClick={() => navigate('/movimientos')}
-                className="text-[11px] font-semibold text-slate-600 hover:text-slate-900"
+                className="text-xs font-bold text-darkteal dark:text-yellowgreen hover:text-cayenne transition-colors cursor-pointer"
               >
                 Ver todos
               </button>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               {ultimosMovimientos.length > 0 ? (
                 ultimosMovimientos.map((mov) => (
-                  <div key={mov.id} className="text-xs space-y-1">
+                  <div key={mov.id} className="text-sm space-y-1.5 p-3 rounded-xl bg-softlinen/30 dark:bg-darkteal border border-darkteal/20">
                     <div className="flex items-center justify-between">
                       <Badge variant={mov.tipo} size="xs" />
-                      <span className="text-[10px] text-slate-600 font-medium">
+                      <span className="text-xs text-darkteal dark:text-softlinen/70 font-bold">
                         {formatFechaLocal(mov.fecha, true)}
                       </span>
                     </div>
-                    <p className="font-semibold text-slate-800 truncate">
+                    <p className="font-extrabold text-evergreen dark:text-softlinen truncate">
                       {mov.materialNombre}
                     </p>
-                    <p className="text-[11px] text-slate-500 flex items-center justify-between">
+                    <p className="text-xs text-evergreen/80 dark:text-softlinen/80 flex items-center justify-between font-medium">
                       <span>
-                        Cant: <strong className="text-slate-700">{mov.cantidad} {mov.unidad}</strong>
+                        Cant: <strong className="text-evergreen dark:text-yellowgreen">{mov.cantidad} {mov.unidad}</strong>
                       </span>
-                      <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
+                      <span className="font-mono text-xs bg-white dark:bg-evergreen px-2 py-0.5 rounded border border-darkteal/20 text-darkteal dark:text-softlinen font-bold">
                         {mov.documentoReferencia}
                       </span>
                     </p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-slate-400 text-xs">
+                <div className="text-center py-6 text-evergreen/60 dark:text-softlinen/60 text-xs md:text-sm font-medium">
                   No hay movimientos registrados.
                 </div>
               )}

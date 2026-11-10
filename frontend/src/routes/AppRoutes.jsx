@@ -6,6 +6,7 @@ import MaterialesPage from '../pages/MaterialesPage';
 import MovimientosPage from '../pages/MovimientosPage';
 import AlertasPage from '../pages/AlertasPage';
 import HistorialPage from '../pages/HistorialPage';
+import ProfilePage from '../pages/ProfilePage';
 
 export default function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AppRoutes() {
         <Route path="movimientos" element={<MovimientosPage />} />
         <Route path="alertas" element={<AlertasPage />} />
         <Route path="historial" element={<HistorialPage />} />
+        <Route path="perfil" element={<ProfilePage />} />
         {/* Wildcard fallback to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

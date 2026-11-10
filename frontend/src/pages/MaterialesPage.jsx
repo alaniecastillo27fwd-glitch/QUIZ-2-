@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Boxes, CheckCircle2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Plus, Boxes, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 import MaterialTable from '../components/materiales/MaterialTable';
 import MaterialFilters from '../components/materiales/MaterialFilters';
@@ -10,7 +10,7 @@ import { useMateriales } from '../hooks/useInventory.js';
 
 export default function MaterialesPage() {
   const navigate = useNavigate();
-  const { materiales, loading, error, addMaterial, resetSeeds } = useMateriales();
+  const { materiales, loading, error, addMaterial } = useMateriales();
 
   // Estados locales para modales
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -33,16 +33,13 @@ export default function MaterialesPage() {
   // Filtrado reactivo en memoria
   const filteredMateriales = useMemo(() => {
     return materiales.filter((m) => {
-      // Búsqueda por texto (nombre o código)
       const matchesSearch =
-        m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.codigo.toLowerCase().includes(searchTerm.toLowerCase());
+        m.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.codigo?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Filtro por ubicación
       const matchesUbicacion =
         ubicacionFilter === 'TODAS' || m.ubicacionPrincipal === ubicacionFilter;
 
-      // Filtro por estado
       const matchesEstado =
         estadoFilter === 'TODOS' || m.estado === estadoFilter;
 
@@ -58,7 +55,7 @@ export default function MaterialesPage() {
 
   const handleCreateMaterial = async (formData) => {
     const created = await addMaterial(formData);
-    showToast(`Material ${created.codigo} (${created.nombre}) registrado con éxito.`);
+    showToast(`Material ${created.codigo} - "${created.nombre}" creado exitosamente.`);
   };
 
   const handleOpenDetail = (material) => {
@@ -66,7 +63,7 @@ export default function MaterialesPage() {
     setIsDetailOpen(true);
   };
 
-  const handleGoToMovimientos = (material) => {
+  const handleGoToMovimiento = (material) => {
     navigate(`/movimientos?material=${material.id}`);
   };
 
@@ -75,50 +72,57 @@ export default function MaterialesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto animate-fade-in-up">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2.5 animate-in slide-in-from-top-3 duration-200 text-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span className="font-semibold">{toastMessage}</span>
+        <div className="p-4 rounded-xl bg-yellowgreen text-evergreen font-bold text-sm flex items-center justify-between shadow-md border-2 border-evergreen animate-scale-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-xs font-black uppercase tracking-wider px-2 py-1 rounded bg-evergreen text-softlinen hover:bg-darkteal"
+          >
+            Cerrar
+          </button>
         </div>
       )}
 
-      {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-slate-500 font-semibold text-xs tracking-wider uppercase mb-1">
-            <Boxes className="w-4 h-4 text-amber-500" />
-            <span>Constructora Del Valle S.A. · Control de Materiales</span>
-          </div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-            Catálogo y Gestión de Insumos
-          </h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
-            Gestión técnica de parámetros operativos: demanda diaria ($d$), lead time ($L$), Stock de Seguridad ($SS$) y Punto de Reorden ($PR$) reactivo.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs transition-colors shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Registrar Material
-          </button>
-        </div>
-      </div>
-
-      {/* Global Error Banner if any */}
+      {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+        <div className="p-4 rounded-xl bg-cayenne text-white font-bold text-sm flex items-center gap-2 shadow-sm">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Filter Bar */}
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-darkteal/20 dark:border-darkteal pb-6">
+        <div>
+          <span className="text-xs font-black uppercase tracking-wider text-darkteal dark:text-yellowgreen">
+            Constructora Del Valle S.A. · Control de Materiales
+          </span>
+          <h2 className="text-2xl md:text-3xl font-black text-evergreen dark:text-softlinen tracking-tight">
+            Catálogo y Gestión de Insumos
+          </h2>
+          <p className="text-sm font-semibold text-darkteal dark:text-softlinen/80 mt-1">
+            Gestión técnica de parámetros operativos: demanda diaria ($d$), lead time ($L$), Stock de Seguridad ($SS$) y Punto de Reorden ($PR$) reactivo.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellowgreen hover:bg-yellowgreen-light active:bg-yellowgreen-dark text-evergreen text-sm font-black uppercase tracking-wider transition-all transform hover:-translate-y-0.5 shadow-sm cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registrar Material</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Filtros */}
       <MaterialFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -130,27 +134,30 @@ export default function MaterialesPage() {
         totalResults={filteredMateriales.length}
       />
 
-      {/* Material Table */}
+      {/* Tabla de Materiales */}
       <MaterialTable
         materiales={filteredMateriales}
         loading={loading}
         onSelectDetail={handleOpenDetail}
-        onGoToMovimientos={handleGoToMovimientos}
+        onGoToMovimientos={handleGoToMovimiento}
       />
 
-      {/* Modal de Registro de Material */}
+      {/* Modal de Registro */}
       <MaterialModalForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSave={handleCreateMaterial}
       />
 
-      {/* Modal de Ficha Técnica Detallada */}
+      {/* Modal de Detalle */}
       <MaterialDetailModal
-        material={selectedMaterial}
         isOpen={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        onGoToMovimiento={handleGoToMovimientos}
+        material={selectedMaterial}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedMaterial(null);
+        }}
+        onGoToMovimiento={handleGoToMovimiento}
         onGoToHistorial={handleGoToHistorial}
       />
     </div>
